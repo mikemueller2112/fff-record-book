@@ -338,7 +338,7 @@ const sw = n => `<span class="sw" style="background:${mcol(n)}"></span>`;
 const mcol = n => MCOLOR[n] || '#6b7280';
 const BALL = '<svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5c-1.2-1.2-1.4-5.6 3-10s8.8-4.2 10-3 1.4 5.6-3 10-8.8 4.2-10 3z"/><path d="M8.5 15.5l7-7M10 13.5l1.5 1.5M12 11.5l1.5 1.5M14 9.5l1.5 1.5"/></svg>';
 const avatar = (n, sm) => { const a=tm(n).avatar; return `<span class="av${sm?' sm':''}" title="${esc(n)}" style="background:${mcol(n)};color:#fff">${BALL}${a?`<img src="https://sleepercdn.com/avatars/thumbs/${a}" alt="" onerror="this.remove()" style="position:absolute;inset:0">`:''}</span>`; };
-const teamCell = (n, sm) => `<div class="team">${avatar(n,sm)}<div style="min-width:0"><div class="n">${esc(teamName(n))}</div><div class="o">${esc(n)}</div></div></div>`;
+const teamCell = (n, sm) => `<div class="team">${avatar(n,sm)}<div style="min-width:0"><div class="n">${esc(n)}</div><div class="o">${esc(teamName(n))}</div></div></div>`;
 let ME = 'Mike';
 try { ME = localStorage.getItem('fff-me') || ME; } catch(e){}
 if (!TEAMS.includes(ME)) ME = TEAMS[0];
@@ -452,9 +452,9 @@ function renderDashboard() {
   const opp = g ? S.out[g.opp] : null;
   const rankThatWeek = g ? CURW.filter(r=>r.week===LASTWK).sort((a,b)=>b.pts-a.pts).findIndex(r=>r.team===ME)+1 : 0;
   $('#d-week').innerHTML = `<div class="hd"><h2>Week ${LASTWK} is in the books</h2></div>` + (g ? `<div class="feat">
-    <div class="mu" style="border:0;padding:.35rem 0"><div class="team">${avatar(ME,1)}<div><div class="n">${esc(teamName(ME))}</div><div class="o">${me.w}-${me.l}</div></div></div><div class="pts ${g.win?'':'lose'}">${num(g.pts)}</div></div>
+    <div class="mu" style="border:0;padding:.35rem 0"><div class="team">${avatar(ME,1)}<div><div class="n">${esc(ME)}</div><div class="o">${esc(teamName(ME))} · ${me.w}-${me.l}</div></div></div><div class="pts ${g.win?'':'lose'}">${num(g.pts)}</div></div>
     <div class="vs">Final</div>
-    <div class="mu" style="border:0;padding:.35rem 0"><div class="team">${avatar(g.opp,1)}<div><div class="n">${esc(teamName(g.opp))}</div><div class="o">${opp.w}-${opp.l}</div></div></div><div class="pts ${g.win?'lose':''}">${num(g.opp_pts)}</div></div></div>
+    <div class="mu" style="border:0;padding:.35rem 0"><div class="team">${avatar(g.opp,1)}<div><div class="n">${esc(g.opp)}</div><div class="o">${esc(teamName(g.opp))} · ${opp.w}-${opp.l}</div></div></div><div class="pts ${g.win?'lose':''}">${num(g.opp_pts)}</div></div></div>
     <p class="small muted" style="margin:.75rem 0 0">${g.win?'Won':'Lost'} by ${n1(Math.abs(g.pts-g.opp_pts))}. ${ord(rankThatWeek)} highest score of 12 that week; league average was ${n1(mean(CURW.filter(r=>r.week===LASTWK).map(r=>r.pts)))}.</p>
     <p class="small" style="margin:.5rem 0 0"><a href="#weekly">Open the Week ${LASTWK} report →</a></p>` : '<p class="muted">No games yet.</p>');
   // review bars
@@ -470,11 +470,11 @@ function renderDashboard() {
   $('#d-po').innerHTML = `<div class="kv"><div><div class="k">Status</div><div class="v">${status}</div></div><div><div class="k">Seed</div><div class="v">${me.rank<=PO?ord(me.rank):'Out ('+ord(me.rank)+')'}</div></div><div><div class="k">${me.rank<=PO?'Wins above the cut':'Wins behind the cut'}</div><div class="v">${Math.abs(gap)}${Math.abs(gap)===1?' win':' wins'}</div></div><div><div class="k">Max wins</div><div class="v">${me.w+left}</div></div></div>
     <p class="small muted" style="margin:.8rem 0 0">Cutoff is currently ${teamName(cut.team)} at ${cut.w}-${cut.l} (${n1(cut.pf)} PF); first team out is ${teamName(first_out.team)} at ${first_out.w}-${first_out.l}.</p><p class="small" style="margin:.4rem 0 0"><a href="#playoffs">Full playoff picture →</a></p>`;
   // power list top 12
-  $('#d-power').innerHTML = S.ranked.map(v=>{ const p = PREV ? PREV.out[v.team].prank - v.prank : 0; return `<li class="${v.team===ME?'me':''}"><span class="i">${v.prank}.</span><div class="team">${avatar(v.team,1)}<div style="min-width:0"><div class="n">${esc(teamName(v.team))}</div><div class="o">${esc(v.team)} · ${v.w}-${v.l}</div></div></div><div style="display:flex;gap:.5rem;align-items:center"><span class="delta ${p>0?'up':p<0?'dn':''}">${p>0?'▲'+p:p<0?'▼'+(-p):'–'}</span><span class="s">${n1(v.score)}</span></div></li>`; }).join('');
+  $('#d-power').innerHTML = S.ranked.map(v=>{ const p = PREV ? PREV.out[v.team].prank - v.prank : 0; return `<li class="${v.team===ME?'me':''}"><span class="i">${v.prank}.</span><div class="team">${avatar(v.team,1)}<div style="min-width:0"><div class="n">${esc(v.team)}</div><div class="o">${esc(teamName(v.team))} · ${v.w}-${v.l}</div></div></div><div style="display:flex;gap:.5rem;align-items:center"><span class="delta ${p>0?'up':p<0?'dn':''}">${p>0?'▲'+p:p<0?'▼'+(-p):'–'}</span><span class="s">${n1(v.score)}</span></div></li>`; }).join('');
   // activity
   const ac = TEAMS.map(t=>({t, ...tm(t)})).sort((a,b)=>b.adds-a.adds); const meA = ac.find(a=>a.t===ME); const mi = ac.indexOf(meA)+1;
   $('#d-activity').innerHTML = `<div class="kv" style="margin-bottom:.9rem"><div><div class="k">Adds</div><div class="v">${meA.adds}</div></div><div><div class="k">League rank</div><div class="v">${ord(mi)} of 12</div></div><div><div class="k">Trades</div><div class="v">${meA.trades}</div></div><div><div class="k">FAAB spent</div><div class="v">$${meA.faab}<span class="muted small" style="font-family:var(--body)"> / ${META.waiverBudget}</span></div></div></div>` +
-    hbar(ac.map(a=>({label:teamName(a.t), v:a.adds, fmt:a.adds, color:a.t===ME?'var(--accent)':'var(--ghost)', tip:`${esc(teamName(a.t))}: ${a.adds} adds, ${a.trades} trades, $${a.faab} FAAB`})));
+    hbar(ac.map(a=>({label:a.t, v:a.adds, fmt:a.adds, color:a.t===ME?'var(--accent)':'var(--ghost)', tip:`${esc(teamName(a.t))}: ${a.adds} adds, ${a.trades} trades, $${a.faab} FAAB`})));
   bindTips($('#d-activity'));
   // margin
   $('#d-margin').innerHTML = barChart(wks.map(w=>{ const r=CURW.find(q=>q.week===w&&q.team===ME); const m=r.pts-r.opp_pts; return {label:'W'+w, v:+m.toFixed(2), color:m>=0?'var(--win)':'var(--loss)', tip:`Week ${w} vs ${teamName(r.opp)}: ${m>=0?'+':''}${n1(m)}`}; }), {h:220, fmtY:v=>(v>0?'+':'')+Math.round(v)});
@@ -509,8 +509,8 @@ function renderWeekly() {
     over ? ['Underachiever', over[over.length-1].r.team, `${n1(over[over.length-1].d)} under their season average`] : null,
   ].filter(Boolean);
   $('#wk-awards').innerHTML = aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v">${esc(a[1])}</div><div class="d">${esc(a[2])}</div></div>`).join('');
-  $('#wk-games').innerHTML = games.map(g=>`<div class="mu"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${esc(teamName(g.a))}</div><div class="o">${g.a} · ${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${esc(teamName(g.b))}</div><div class="o">${g.b} · ${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?teamName(g.a):teamName(g.b)} by ${n1(g.m)} · ${n1(g.tot)} combined</div></div>`).join('');
-  $('#wk-board').innerHTML = hbar([...rows].sort((a,b)=>b.pts-a.pts).map(r=>({label:teamName(r.team), sub:r.win?'W':'L', v:r.pts, color:r.win?'var(--win)':'var(--loss)', tip:`${esc(teamName(r.team))} ${num(r.pts)} vs ${esc(teamName(r.opp))} ${num(r.opp_pts)}`})), {max:Math.max(...rows.map(r=>r.pts))}) + `<p class="small muted" style="margin:.6rem 0 0">League average ${n1(avg)}. ${rows.filter(r=>r.pts>avg).length} teams above it.</p>`;
+  $('#wk-games').innerHTML = games.map(g=>`<div class="mu"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${g.a}</div><div class="o">${esc(teamName(g.a))} · ${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${g.b}</div><div class="o">${esc(teamName(g.b))} · ${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?g.a:g.b} by ${n1(g.m)} · ${n1(g.tot)} combined</div></div>`).join('');
+  $('#wk-board').innerHTML = hbar([...rows].sort((a,b)=>b.pts-a.pts).map(r=>({label:r.team, sub:r.win?'W':'L', v:r.pts, color:r.win?'var(--win)':'var(--loss)', tip:`${esc(teamName(r.team))} ${num(r.pts)} vs ${esc(teamName(r.opp))} ${num(r.opp_pts)}`})), {max:Math.max(...rows.map(r=>r.pts))}) + `<p class="small muted" style="margin:.6rem 0 0">League average ${n1(avg)}. ${rows.filter(r=>r.pts>avg).length} teams above it.</p>`;
   bindTips($('#wk-board'));
   standingsTable($('#wk-stand'), St, false);
 }
