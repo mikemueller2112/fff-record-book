@@ -856,8 +856,8 @@ function renderCompare() {
 }
 
 /* ---------- matchup detail ---------- */
-let MU = null;
-function openMatchup(year, week, team) { MU = {year, week, team}; delete rendered.matchup; location.hash = '#matchup'; if (location.hash==='#matchup') show('matchup'); }
+let MU = null, MUFROM = 'weekly';
+function openMatchup(year, week, team) { MUFROM = (location.hash.slice(1)||'dashboard'); MU = {year, week, team}; delete rendered.matchup; location.hash = '#matchup'; if (location.hash==='#matchup') show('matchup'); }
 function renderMatchup() {
   const m = MU || {year:CUR, week:LASTWK, team:ME}; MU = m;
   let wk = LINEUPS[`${m.year}-${m.week}`];
@@ -870,7 +870,7 @@ function renderMatchup() {
   const b = wk[g.opp]; const win = g.pts > g.opp_pts;
   $('#mu-sub').innerHTML = `${m.team} ${num(g.pts)} – ${num(g.opp_pts)} ${g.opp} · <b class="${win?'cw':'cl'}">${m.team} ${win?'won':'lost'} by ${n1(Math.abs(g.pts-g.opp_pts))}</b>`;
   const side = (t, L, tot) => { const bestTot = L ? sum(L.starters.map(x=>x.pts)) : 0; const benchTot = L ? sum(L.bench.map(x=>x.pts)) : 0; return `<div><h3>${avatar(t,1)}${t}<span class="tot">${num(tot)}</span></h3>${L?`<div class="tbl"><table><tbody>${L.starters.map(x=>`<tr><td class="slot l">${x.slot}</td><td class="pl l"><b>${esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></td><td class="num"><b>${n1(x.pts)}</b></td></tr>`).join('')}<tr><th class="bh" colspan="2">Bench · ${n1(benchTot)} pts</th><th></th></tr>${L.bench.map(x=>`<tr class="bench"><td class="slot l">BN</td><td class="pl l"><b>${esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></td><td class="num">${n1(x.pts)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">No lineup data.</p>'}</div>`; };
-  $('#mu-body').innerHTML = `<div class="lineup">${side(m.team, a, g.pts)}${side(g.opp, b, g.opp_pts)}</div><p class="small" style="margin:.8rem 0 0"><a href="#weekly">Back to the Week ${m.week} report →</a></p>`;
+  $('#mu-body').innerHTML = `<div class="lineup">${side(m.team, a, g.pts)}${side(g.opp, b, g.opp_pts)}</div><p class="small" style="margin:.8rem 0 0"><a href="#${MUFROM==='matchup'?'weekly':MUFROM}">← Back to ${VIEWS[MUFROM]?VIEWS[MUFROM][0]:'Weekly Report'}</a></p>`;
 }
 
 /* ---------- roster activity ---------- */
@@ -928,7 +928,8 @@ function renderH2H() {
   };
   const detail = () => { const [a,b]=selc; const gs=weekly.filter(r=>r.team===a&&r.opp===b).sort((x,y)=>y.year-x.year||y.week-x.week); const w=gs.filter(g=>g.win).length, l=gs.filter(g=>!g.win&&!g.tie).length; const [sw,sl]=G[N.indexOf(a)][N.indexOf(b)];
     const streak = (()=>{ if(!gs.length) return ''; let c=gs[0].win, n=0; for(const g of gs){ if(g.win===c) n++; else break; } return `${a} has ${c?'won':'lost'} the last ${n}`; })();
-    $('#h2h-detail').innerHTML = `<div class="hd"><h2>${a} vs ${b}</h2><p>${sw}–${sl} all-time including playoffs · ${w}–${l} in logged regular-season games${streak?' · '+streak:''}. Avg ${n1(mean(gs.map(g=>g.pts)))} to ${n1(mean(gs.map(g=>g.opp_pts)))}.</p></div>` + (gs.length ? `<div class="tbl"><table><thead><tr><th class="l">Season</th><th>Week</th><th>${a}</th><th>${b}</th><th class="l">Result</th></tr></thead><tbody>${gs.map(g=>`<tr><td class="l">${g.year}</td><td>${g.week}</td><td>${num(g.pts)}</td><td>${num(g.opp_pts)}</td><td class="l ${g.win?'cw':'cl'}">${g.win?a:b} by ${num(Math.abs(g.pts-g.opp_pts))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No regular-season games logged.</p>'); };
+    $('#h2h-detail').innerHTML = `<div class="hd"><h2>${a} vs ${b}</h2><p>${sw}–${sl} all-time including playoffs · ${w}–${l} in logged regular-season games${streak?' · '+streak:''}. Avg ${n1(mean(gs.map(g=>g.pts)))} to ${n1(mean(gs.map(g=>g.opp_pts)))}.</p></div>` + (gs.length ? `<p class="small muted" style="margin:0 0 .4rem">Click a game to see both lineups.</p><div class="tbl"><table><thead><tr><th class="l">Season</th><th>Week</th><th>${a}</th><th>${b}</th><th class="l">Result</th><th></th></tr></thead><tbody>${gs.map(g=>`<tr class="clicky" data-y="${g.year}" data-w="${g.week}" style="cursor:pointer"><td class="l">${g.year}</td><td>${g.week}</td><td>${num(g.pts)}</td><td>${num(g.opp_pts)}</td><td class="l ${g.win?'cw':'cl'}">${g.win?a:b} by ${num(Math.abs(g.pts-g.opp_pts))}</td><td class="l"><a href="#matchup">Lineups →</a></td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No regular-season games logged.</p>');
+    $('#h2h-detail').querySelectorAll('tr[data-y]').forEach(tr=>tr.onclick=(e)=>{ e.preventDefault(); openMatchup(+tr.dataset.y, +tr.dataset.w, a); }); };
   draw();
 }
 
