@@ -386,7 +386,7 @@ const MCOLOR = {Adam:"#e02424",Brooks:"#f26f0c",Mike:"#d49a00",Scott:"#8f9a1b",C
 const sw = n => `<span class="sw" style="background:${mcol(n)}"></span>`;
 const mcol = n => MCOLOR[n] || '#6b7280';
 const BALL = '<svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5c-1.2-1.2-1.4-5.6 3-10s8.8-4.2 10-3 1.4 5.6-3 10-8.8 4.2-10 3z"/><path d="M8.5 15.5l7-7M10 13.5l1.5 1.5M12 11.5l1.5 1.5M14 9.5l1.5 1.5"/></svg>';
-const avatar = (n, sm) => { const a=tm(n).avatar; return `<span class="av${sm?' sm':''}" title="${esc(n)}" style="background:${mcol(n)};color:#fff">${BALL}${a?`<img src="https://sleepercdn.com/avatars/thumbs/${a}" alt="" onerror="this.remove()" style="position:absolute;inset:0">`:''}</span>`; };
+const avatar = (n, sm) => { return `<span class="av${sm?' sm':''}" title="${esc(n)}" style="background:${mcol(n)};color:#fff">${BALL}</span>`; };
 const teamCell = (n, sm) => `<div class="team">${avatar(n,sm)}<div style="min-width:0"><div class="n">${esc(n)}</div></div></div>`;
 let ME = 'Mike';
 try { ME = localStorage.getItem('fff-me') || ME; } catch(e){}
