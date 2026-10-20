@@ -56,6 +56,10 @@ body.rail-hidden #rail-open{display:grid}
 .rail a.nav svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .rail a.nav:hover{background:var(--rail-hover);opacity:1}
 .rail a.nav.on{background:var(--gold);color:#1c2420;opacity:1;font-weight:600}
+.railsel{display:flex;align-items:center;gap:.5rem;padding:0 .5rem .9rem}
+.railsel label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.mesel{flex:1;min-width:0;border:1px solid var(--rail-hover);background:var(--rail-hover);color:var(--rail-fg);border-radius:3px;padding:.45rem .6rem;font:inherit;font-family:var(--display);font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em}
+#me-topbar{display:none}
 .rail .foot{padding:1rem .6rem 0;font-size:.75rem;color:var(--rail-fg);opacity:.6;line-height:1.4}
 .topbar{display:none}
 main{min-width:0;padding-block:1.5rem 3rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -209,7 +213,8 @@ svg.ch .ax{stroke:var(--line2);stroke-width:1}
   .scrim{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:25;display:none}
   .scrim.on{display:block}
   .topbar{display:flex;align-items:center;gap:.9rem;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--rail);color:var(--rail-fg);border-bottom:1px solid var(--rail);padding:.85rem .6rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-  .topbar .t{font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1.05;text-transform:uppercase;letter-spacing:.04em}
+  #me-topbar{display:block;margin-left:auto;flex:0 0 auto;width:118px;font-size:1.05rem;padding:.6rem .4rem;border-color:var(--rail-fg)}
+  .topbar .t{flex:1;min-width:0;font-family:var(--display);font-weight:800;font-size:1.9rem;line-height:1.05;text-transform:uppercase;letter-spacing:.04em}
   .topbar .t small{display:block;font-weight:500;opacity:.8;font-size:1rem;text-transform:none;letter-spacing:0;margin-top:.15rem}
   .topbar button{border:2px solid var(--rail-fg);background:transparent;color:var(--rail-fg);border-radius:4px;width:52px;height:52px;display:grid;place-items:center;cursor:pointer}
   .kv .v{font-size:1.2rem}
@@ -218,11 +223,11 @@ svg.ch .ax{stroke:var(--line2);stroke-width:1}
 </style>
 
 <div class="scrim" id="scrim"></div>
-<div class="topbar"><button id="menu" aria-label="Open navigation"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div class="t">Final Fantasy Football Hub<small id="tb-ctx"></small></div></div>
+<div class="topbar"><button id="menu" aria-label="Open navigation"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div class="t">FFF Hub<small id="tb-ctx"></small></div><select id="me-topbar" class="mesel" aria-label="Team"></select></div>
 
 <div class="shell">
 <nav class="rail" id="rail" aria-label="Views">
-  <div class="brand"><span class="ball">FFF</span>Final Fantasy<br>Football Hub</div><button class="railbtn" id="rail-close" aria-label="Hide menu" title="Hide menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <div class="brand"><span class="ball">FFF</span>Final Fantasy<br>Football Hub</div><div class="railsel"><label for="me-rail">Team</label><select id="me-rail" class="mesel"></select></div><button class="railbtn" id="rail-close" aria-label="Hide menu" title="Hide menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
   <a class="nav" href="#dashboard" data-v="dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</a>
   <a class="nav" href="#weekly" data-v="weekly"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Weekly Report</a>
   <div class="grp">League analysis</div>
@@ -495,8 +500,7 @@ function renderDashboard() {
   const me = S.out[ME]; const info = tm(ME);
   $('#d-team').innerHTML = `<div class="team" style="margin-bottom:1rem">${avatar(ME).replace('class="av"','class="av" style="width:56px;height:56px;font-size:1.1rem"')}<div style="min-width:0"><h2 style="white-space:normal">${esc(ME)}</h2><div class="muted small">Final Fantasy Football · Half PPR</div></div></div>
     <div class="kv"><div><div class="k">Record</div><div class="v">${me.w}-${me.l}${me.t?'-'+me.t:''}</div></div><div><div class="k">Standing</div><div class="v">${ord(me.rank)}</div></div><div><div class="k">Power rank</div><div class="v">#${me.prank}</div></div><div><div class="k">Points</div><div class="v">${n1(me.pf)}</div></div></div>
-    <div class="ctl" style="margin-top:1rem"><label class="small muted" for="me-sel">Change team</label><select id="me-sel"></select></div>`;
-  sel('#me-sel', [...S.stand].map(s=>s.team).sort(), ME, t=>t).onchange = e => { ME=e.target.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show('dashboard'); };
+    <p class="small muted" style="margin:1rem 0 0">Switch managers with the Team selector in the header.</p>`;
   const g = CURW.find(r=>r.year===CUR && r.week===LASTWK && r.team===ME);
   const opp = g ? S.out[g.opp] : null;
   const rankThatWeek = g ? CURW.filter(r=>r.week===LASTWK).sort((a,b)=>b.pts-a.pts).findIndex(r=>r.team===ME)+1 : 0;
@@ -949,9 +953,9 @@ const VIEWS = {
     const e=document.createElement('select'); e.id='wk-sel';
     const fill=()=>{ e.innerHTML=''; const ws=weeksOf(WY); [...ws].reverse().forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);}); if(!ws.includes(WK)) WK=ws[ws.length-1]; e.value=WK; };
     fill(); ys.onchange=()=>{WY=+ys.value; fill(); renderWeekly();}; e.onchange=()=>{WK=+e.value; renderWeekly();};
-    const w=meSelect(); w.prepend(ys, e); return w; }],
+    const w=document.createElement('div'); w.className='ctl'; w.append(ys, e); return w; }],
   standings:['Standings', `${CUR} regular season, ${WEEKLABEL}.`, renderStandings, meSelect],
-  power:['Power Rankings', 'Who is actually good, not just who has the wins.', renderPower, () => { const e=$('#pw-week'); e.innerHTML=''; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=PWW; e.onchange=()=>{PWW=+e.value; renderPower();}; PWSEL=ME; return meSelect(); }],
+  power:['Power Rankings', 'Who is actually good, not just who has the wins.', renderPower, () => { const e=$('#pw-week'); e.innerHTML=''; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=PWW; e.onchange=()=>{PWW=+e.value; renderPower();}; PWSEL=ME; return null; }],
   xwins:['Expected Wins', 'Separating performance from schedule luck.', renderXwins, meSelect],
   playoffs:['Playoff Picture', `${PO} teams make it. Who is in, who is close, who is done.`, renderPlayoffs, meSelect],
   forecast:['Season Forecast', 'Simulate the remaining schedule using current records, roster projections and scoring volatility.', renderForecast, meSelect],
@@ -964,14 +968,9 @@ const VIEWS = {
   seasons:['Season Archive', 'Any season, standings and weekly scores.', renderSeason, () => { const e=$('#se-year'); e.innerHTML=[...YEARS].reverse().map(y=>`<option value="${y}" ${y===SEY?'selected':''}>${y}</option>`).join(''); e.onchange=()=>{SEY=+e.value; renderSeason();}; return null; }],
 };
 const rendered = {};
-function meSelect() {
-  const wrap=document.createElement('div'); wrap.className='ctl';
-  const lab=document.createElement('label'); lab.className='small muted'; lab.htmlFor='me-top'; lab.textContent='Team';
-  const e=document.createElement('select'); e.id='me-top';
-  [...S.stand].sort((a,b)=>a.team.localeCompare(b.team)).forEach(v=>{ const o=document.createElement('option'); o.value=v.team; o.textContent=v.team; if(v.team===ME) o.selected=true; e.appendChild(o); });
-  e.onchange=()=>{ ME=e.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show(location.hash.slice(1)||'dashboard'); };
-  wrap.append(lab,e); return wrap;
-}
+function meSelect() { return null; }
+function setMe(v) { ME=v; try{localStorage.setItem('fff-me',ME);}catch(x){} document.querySelectorAll('.mesel').forEach(e=>e.value=ME); for (const k in rendered) delete rendered[k]; show(location.hash.slice(1)||'dashboard'); }
+document.querySelectorAll('.mesel').forEach(e=>{ e.innerHTML=[...TEAMS].sort().map(t=>`<option value="${t}">${t}</option>`).join(''); e.value=ME; e.onchange=()=>setMe(e.value); });
 function show(v) {
   if (!VIEWS[v]) v = 'dashboard';
   document.querySelectorAll('main section').forEach(s=>s.hidden = s.id!=='v-'+v);
