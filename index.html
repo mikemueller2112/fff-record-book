@@ -107,7 +107,7 @@ svg .axis{stroke:var(--rule)} svg .lbl{fill:var(--muted);font-size:11px}
     <div class="grid g4" id="ov-tiles"></div>
     <div class="grid g2" style="margin-top:1rem">
       <div class="panel"><h3>2026 standings · through week 6</h3><div class="tbl" id="ov-standings"></div></div>
-      <div class="panel"><h3>Title count</h3><div id="ov-titles"></div></div>
+      <div class="panel"><h3>Titty count</h3><div id="ov-titles"></div></div>
     </div>
   </section>
 
@@ -243,7 +243,7 @@ sortable($('#alltime'), [
   {key:'winSeasons',label:'Winning yrs'},
   {key:'poApp',label:'Playoffs'},
   {key:'poW',label:'PO W–L',fmt:r=>`${r.poW}–${r.poL}`},
-  {key:'titles',label:'Titles',fmt:r=>r.titles?'🏆'.repeat(r.titles):'–'},
+  {key:'titles',label:'Titties',fmt:r=>r.titles?'🏆'.repeat(r.titles):'–'},
   {key:'ru',label:'Runner-up'},
   {key:'shitties',label:'Shitties',fmt:r=>r.shitties?'💩'.repeat(r.shitties):'–'},
 ], MANAGERS.map(m=>({...career[m], winpct:career[m].regW/(career[m].regW+career[m].regL)})), 'winpct');
@@ -353,7 +353,7 @@ sortable($('#alltime'), [
     return `<div class="panel" style="--c:${COLORS[m]}"><div class="row" style="justify-content:space-between"><div class="nm">${m}</div><div>${'🏆'.repeat(c.titles)}${'💩'.repeat(c.shitties)}</div></div>
       <div class="muted small">${c.firstYear}–${c.lastYear===CUR?'present':c.lastYear} · ${c.seasons} full seasons</div>
       <div class="stats"><div><b>${c.regW}–${c.regL}</b><span>Reg. record</span></div><div><b>${pct(c.regW,c.regL)}</b><span>Win %</span></div><div><b>${num(c.ppg,1)}</b><span>PPG</span></div>
-      <div><b>${c.poApp}</b><span>Playoffs</span></div><div><b>${c.titles}/${c.ru}</b><span>Titles / RU</span></div><div><b>${c.shitties?'💩'.repeat(c.shitties):'–'}</b><span>Shitties</span></div></div>
+      <div><b>${c.poApp}</b><span>Playoffs</span></div><div><b>${c.titles}/${c.ru}</b><span>Titties / RU</span></div><div><b>${c.shitties?'💩'.repeat(c.shitties):'–'}</b><span>Shitties</span></div></div>
       ${svg}
       <div class="small muted">Best finish: ${c.best??'–'} (${bestYr}) · Season high: ${num(hi.pts)} (${hi.year} wk ${hi.week})</div></div>`;
   }).join('');
