@@ -499,14 +499,14 @@ function renderWeekly() {
   const unlucky = rows.filter(r=>!r.win).sort((a,b)=>b.pts-a.pts)[0], lucky = rows.filter(r=>r.win).sort((a,b)=>a.pts-b.pts)[0];
   $('#wk-h').textContent = `Week ${WK} awards`; $('#wk-sub').textContent = `League average ${n1(avg)}. Highest score ${num(hi.pts)}, lowest ${num(lo.pts)}.`;
   const aw = [
-    ['Top score', teamName(hi.team), `${num(hi.pts)} · ${hi.team}`],
-    ['Low score', teamName(lo.team), `${num(lo.pts)} · ${lo.team}`],
-    ['Blowout', `${teamName(blow.ap>blow.bp?blow.a:blow.b)} over ${teamName(blow.ap>blow.bp?blow.b:blow.a)}`, `by ${n1(blow.m)}`],
-    ['Nail-biter', `${teamName(close.ap>close.bp?close.a:close.b)} over ${teamName(close.ap>close.bp?close.b:close.a)}`, `by ${n1(close.m)}`],
-    unlucky ? ['Tough-luck loss', teamName(unlucky.team), `${num(unlucky.pts)} wasn't enough vs ${unlucky.opp}`] : null,
-    lucky ? ['Escape act', teamName(lucky.team), `won with only ${num(lucky.pts)}`] : null,
-    over ? ['Overachiever', teamName(over[0].r.team), `+${n1(over[0].d)} over their season average`] : null,
-    over ? ['Underachiever', teamName(over[over.length-1].r.team), `${n1(over[over.length-1].d)} under their season average`] : null,
+    ['Top score', hi.team, `${num(hi.pts)} · ${teamName(hi.team)}`],
+    ['Low score', lo.team, `${num(lo.pts)} · ${teamName(lo.team)}`],
+    ['Blowout', `${blow.ap>blow.bp?blow.a:blow.b} over ${blow.ap>blow.bp?blow.b:blow.a}`, `by ${n1(blow.m)}`],
+    ['Nail-biter', `${close.ap>close.bp?close.a:close.b} over ${close.ap>close.bp?close.b:close.a}`, `by ${n1(close.m)}`],
+    unlucky ? ['Tough-luck loss', unlucky.team, `${num(unlucky.pts)} wasn't enough vs ${unlucky.opp}`] : null,
+    lucky ? ['Escape act', lucky.team, `won with only ${num(lucky.pts)}`] : null,
+    over ? ['Overachiever', over[0].r.team, `+${n1(over[0].d)} over their season average`] : null,
+    over ? ['Underachiever', over[over.length-1].r.team, `${n1(over[over.length-1].d)} under their season average`] : null,
   ].filter(Boolean);
   $('#wk-awards').innerHTML = aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v">${esc(a[1])}</div><div class="d">${esc(a[2])}</div></div>`).join('');
   $('#wk-games').innerHTML = games.map(g=>`<div class="mu"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${esc(teamName(g.a))}</div><div class="o">${g.a} · ${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${esc(teamName(g.b))}</div><div class="o">${g.b} · ${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?teamName(g.a):teamName(g.b)} by ${n1(g.m)} · ${n1(g.tot)} combined</div></div>`).join('');
