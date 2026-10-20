@@ -962,7 +962,7 @@ function weekFacts(year, week) {
 function writeRecap(F, year, week) {
   const r = rng(year*100+week); const pick = arr => arr[Math.floor(r()*arr.length)];
   const {games, T, St, Sp, avg, hi, lo} = F; const P = [];
-  const name = t => mlink(t); const pl = (x, t) => x ? plink(x.n, t, year, week, x.p) : null; const rec = t => `${T[t].rec.w}-${T[t].rec.l}`;
+  const name = t => mlink(t, true); const pl = (x, t) => x ? plink(x.n, t, year, week, x.p) : null; const rec = t => `${T[t].rec.w}-${T[t].rec.l}`;
   const bigGame = games.find(g=>g.w===hi.team) || games[0]; const stars = [T[hi.team].top, T[hi.team].top2].filter(Boolean);
   // 1. the week's top score
   P.push(pick([
