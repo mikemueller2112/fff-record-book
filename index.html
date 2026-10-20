@@ -193,6 +193,10 @@ svg.ch .ax{stroke:var(--line2);stroke-width:1}
 .lineup td.pl b{display:block} .lineup td.pl span{font-size:.75rem;color:var(--muted)}
 .lineup tr.bench td{color:var(--fg2)} .lineup th.bh{text-align:left;padding-top:.9rem;color:var(--muted)}
 .clicky{cursor:pointer;transition:border-color .15s} .clicky:hover{border-color:var(--accent)}
+.hs{position:relative;display:inline-grid;place-items:center;border-radius:50%;background:var(--rail);color:var(--gold);overflow:hidden;flex:none;vertical-align:middle}
+.hs .hs-pos{font-family:var(--display);font-weight:800;font-size:.9em}
+.hs img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;background:var(--hover)}
+.tl{height:1.1em;width:auto;vertical-align:-.2em;margin-right:.25em}
 .cell{display:inline-block;min-width:3.2em;padding:.15rem .3rem;border-radius:3px;text-align:center}
 .c-g{background:var(--win-soft)} .c-y{background:var(--gold-soft)} .c-r{background:var(--loss-soft)} .c-n{background:var(--hover);color:var(--muted)}
 .prose{max-width:72ch;font-size:1.02rem;line-height:1.65} .prose p{margin:0 0 1rem} .prose p:last-child{margin:0}
@@ -205,7 +209,7 @@ a.pl{color:var(--fg);font-weight:600;text-decoration:none;border-bottom:1px dott
 /* history (styled like the Record Book page) */
 .ul{border-bottom:3px solid var(--c);padding-bottom:1px}
 a.ml{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line2)} a.ml:hover{color:var(--accent);border-bottom-color:var(--accent)}
-.mgr-hd{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.mgr-hd{display:flex;align-items:center;gap:1rem;flex-wrap:wrap} .mgr-hd .hs{width:96px;height:96px;font-size:1.4rem}
 .sw{display:inline-block;width:.7em;height:.7em;border-radius:2px;margin-right:.4em;vertical-align:-.02em}
 .timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem}
 .yr{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:.7rem .8rem;border-top:3px solid var(--gold)}
@@ -606,6 +610,7 @@ function renderDashboard() {
 let WK = LASTWK, WY = CUR;
 const weeksOf = y => [...new Set(weekly.filter(r=>r.year===y).map(r=>r.week))].sort((a,b)=>a-b);
 function renderWeekly() {
+  if (!PLOG) { loadPlog().then(()=>{ delete rendered.weekly; if ((location.hash.slice(1)||'')==='weekly') renderWeekly(); }); }
   const rows = weekly.filter(r=>r.year===WY && r.week===WK); const avg = mean(rows.map(r=>r.pts));
   const games = rows.filter(r=>r.team<r.opp).map(r=>({a:r.team, ap:r.pts, b:r.opp, bp:r.opp_pts, tot:r.pts+r.opp_pts, m:Math.abs(r.pts-r.opp_pts)})).sort((a,b)=>b.tot-a.tot);
   const hi = [...rows].sort((a,b)=>b.pts-a.pts)[0], lo = [...rows].sort((a,b)=>a.pts-b.pts)[0];
@@ -632,7 +637,7 @@ function renderWeekly() {
   $('#wk-board').innerHTML = hbar([...rows].sort((a,b)=>b.pts-a.pts).map(r=>({label:r.team, html:`${avatar(r.team,1)}${mlink(r.team)}`, sub:r.win?'(W)':'(L)', subCls:r.win?'cw':'cl', v:r.pts, color:r.win?'var(--win)':'var(--loss)', tip:`${esc(r.team)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}`})), {max:Math.max(...rows.map(r=>r.pts)), marker:avg, markerLabel:`League average ${n1(avg)}`}) + `<p class="small muted" style="margin:.6rem 0 0"><span style="display:inline-block;width:14px;border-top:2px dotted var(--fg);vertical-align:middle;margin-right:.4rem"></span>League average ${n1(avg)}. ${rows.filter(r=>r.pts>avg).length} teams above it.</p>`;
   bindTips($('#wk-board'));
   const tp = PLAYERS[`${WY}-${WK}`];
-  $('#wk-top').innerHTML = tp ? ['QB','RB','WR','TE','K','DEF'].map(pos=>`<div class="award"><div class="k">${pos}</div>${(tp[pos]||[]).slice(0,3).map((r,i)=>`<div style="display:flex;justify-content:space-between;gap:.5rem;padding:.3rem 0;border-top:${i?'1px dashed var(--line)':'0'}"><div style="min-width:0"><div class="v" style="margin:0">${plink(r.name, r.owner||'', WY, WK, pos)} <span class="muted small">${r.team||''}</span></div><div class="d">${r.owner?`${sw(r.owner)}${r.owner}${r.started?'':' <span class="muted">(bench)</span>'}`:'<span class="muted">Free agent</span>'}</div></div><div class="num" style="font-family:var(--display);font-weight:700;font-size:1.1rem">${n1(r.pts)}</div></div>`).join('')}</div>`).join('') : `<p class="muted">${WY<2023?'Player-level data is only available for the Sleeper seasons (2023 onward).':'Player data not available for this week yet.'}</p>`;
+  $('#wk-top').innerHTML = tp ? ['QB','RB','WR','TE','K','DEF'].map(pos=>`<div class="award"><div class="k">${pos}</div>${(tp[pos]||[]).slice(0,3).map((r,i)=>`<div style="display:flex;justify-content:space-between;gap:.5rem;padding:.3rem 0;border-top:${i?'1px dashed var(--line)':'0'}"><div style="min-width:0"><div class="v" style="margin:0;display:flex;align-items:center;gap:.4rem">${HEAD(findPlayer(r.name,pos), 26, pos)}<span>${plink(r.name, r.owner||'', WY, WK, pos)} <span class="muted small">${r.team||''}</span></span></div><div class="d">${r.owner?`${sw(r.owner)}${r.owner}${r.started?'':' <span class="muted">(bench)</span>'}`:'<span class="muted">Free agent</span>'}</div></div><div class="num" style="font-family:var(--display);font-weight:700;font-size:1.1rem">${n1(r.pts)}</div></div>`).join('')}</div>`).join('') : `<p class="muted">${WY<2023?'Player-level data is only available for the Sleeper seasons (2023 onward).':'Player data not available for this week yet.'}</p>`;
   standingsTable($('#wk-stand'), St, false);
 }
 function standingsTable(el, St, full) {
@@ -905,6 +910,8 @@ document.addEventListener('click', e => { const a = e.target.closest && e.target
 function openPlayer(name, pos, mgr, year, week) {
   PLSEL = {name, pos, mgr, year, week}; PLYEAR = CUR; delete rendered.player; location.hash = '#player'; if (location.hash==='#player') show('player');
 }
+const HEAD = (pid, size, pos) => `<span class="hs" style="width:${size}px;height:${size}px"><span class="hs-pos">${esc(pos||'')}</span>${pid?`<img src="https://sleepercdn.com/content/nfl/players/thumb/${pid}.jpg" alt="" loading="lazy" onerror="this.remove()">`:''}</span>`;
+const TEAMLOGO = t => t ? `<img class="tl" src="https://sleepercdn.com/images/team_logos/nfl/${String(t).toLowerCase()}.png" alt="" loading="lazy" onerror="this.remove()">` : '';
 const SNP = r => { const a = r.off_snp ?? r.def_snp, b = r.tm_off_snp ?? r.tm_def_snp; return a!=null && b ? Math.round(a/b*100) : null; };
 const COLS = {
   QB: [['Pass','pass_att','ATT'],['','pass_cmp','CMP'],['','pass_yd','YD'],['','pass_td','TD'],['','pass_int','INT'],['Rush','rush_att','ATT'],['','rush_yd','YD'],['','rush_td','TD'],['','fum_lost','FUM']],
@@ -921,7 +928,7 @@ function renderPlayer() {
     const a=$('#pl-mu'); if (a) a.onclick=(e)=>{ e.preventDefault(); openMatchup(q.year, q.week, q.mgr); }; return; }
   const ht = v.ht ? `${Math.floor(v.ht/12)}'${v.ht%12}"` : '–';
   const own = v.own || {}; const curOwn = own[String(Math.max(...Object.keys(own).map(Number), 0))];
-  $('#pl-hd').innerHTML = `<div class="av" style="width:64px;height:64px;background:var(--rail);color:var(--gold);font-family:var(--display);font-size:1.3rem;font-weight:800">${esc(v.p||'')}</div><div><h1 style="font-size:2.4rem">${esc(v.n)}</h1><div class="muted">${v.p||''}${v.t?' · '+v.t:''}${v.num!=null?' · #'+v.num:''}${v.inj?` · <span class="cl">${esc(v.inj)}</span>`:''}${v.col?' · '+esc(v.col):''}</div><div class="small" style="margin-top:.2rem">${curOwn?`Rostered by ${mlink(curOwn[0])} in this league`:'Free agent in this league'}${q.mgr&&q.week?` · <a href="#matchup" id="pl-mu">Week ${q.week} matchup →</a>`:''}</div></div>`;
+  $('#pl-hd').innerHTML = `${HEAD(pid, 96, v.p)}<div><h1 style="font-size:2.4rem">${esc(v.n)}</h1><div class="muted">${v.p||''}${v.t?' · '+TEAMLOGO(v.t)+v.t:''}${v.num!=null?' · #'+v.num:''}${v.inj?` · <span class="cl">${esc(v.inj)}</span>`:''}${v.col?' · '+esc(v.col):''}</div><div class="small" style="margin-top:.2rem">${curOwn?`Rostered by ${mlink(curOwn[0])} in this league`:'Free agent in this league'}${q.mgr&&q.week?` · <a href="#matchup" id="pl-mu">Week ${q.week} matchup →</a>`:''}</div></div>`;
   const a=$('#pl-mu'); if (a) a.onclick=(e)=>{ e.preventDefault(); openMatchup(q.year, q.week, q.mgr); };
   const logs = Object.entries(v.log); const tot = sum(logs.map(([w,r])=>r.pts)); const gp = logs.length;
   const seas = v.seasons || {}; const careerPts = tot + sum(Object.values(seas).map(x=>x.pts)), careerG = gp + sum(Object.values(seas).map(x=>x.g));
@@ -987,6 +994,7 @@ function writeRecap(F, year, week) {
   return P.map(x=>`<p>${x}</p>`).join('');
 }
 function renderSummary() {
+  if (!PLOG) { loadPlog().then(()=>{ delete rendered.summary; if ((location.hash.slice(1)||'')==='summary') renderSummary(); }); }
   const F = weekFacts(SMY, SMW);
   $('#sm-h').textContent = `${SMY} · Week ${SMW} in review`;
   if (!F) { $('#sm-text').innerHTML = '<p class="muted">No games for this week.</p>'; return; }
@@ -1007,7 +1015,7 @@ function renderSummary() {
   const carry = Object.entries(T).filter(([t,v])=>v.top).map(([t,v])=>({t, share:v.top.pts/Math.max(1,v.pts), x:v.top, pts:v.pts})).sort((a,b)=>b.share-a.share)[0];
   if (carry) aw.push(['One-player carry', carry.t, `${plink(carry.x.n,carry.t,yr,wk,carry.x.p)} supplied ${Math.round(carry.share*100)}% of ${mlink(carry.t)}'s starting points: ${n1(carry.x.pts)} of ${num(carry.pts)}.`]);
   $('#sm-awards').innerHTML = aw.length ? aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v" style="display:flex;gap:.4rem;align-items:center">${avatar(a[1],1)}${mlink(a[1])}</div><div class="d">${a[2]}</div></div>`).join('') : '<p class="muted small">Lineup data is needed for awards.</p>';
-  const it = (x,t) => `<div class="it"><div style="min-width:0"><div>${plink(x.n,t,yr,wk,x.p)} <span class="muted small">${x.p||''}${x.t?' · '+x.t:''}</span></div><div class="d">${mlink(t)}</div></div><div class="v">${n1(x.pts)}</div></div>`;
+  const it = (x,t) => `<div class="it"><div style="min-width:0;display:flex;align-items:center;gap:.5rem">${HEAD(findPlayer(x.n,x.p), 30, x.p)}<div><div>${plink(x.n,t,yr,wk,x.p)} <span class="muted small">${x.p||''}${x.t?' · '+x.t:''}</span></div><div class="d">${mlink(t)}</div></div></div><div class="v">${n1(x.pts)}</div></div>`;
   const allSt = Object.entries(T).flatMap(([t,v])=>v.starters.map(x=>({x,t}))), allBn = Object.entries(T).flatMap(([t,v])=>v.bench.map(x=>({x,t})));
   $('#sm-top').innerHTML = allSt.sort((a,b)=>b.x.pts-a.x.pts).slice(0,6).map(o=>it(o.x,o.t)).join('') || '<p class="muted small">No lineup data.</p>';
   $('#sm-bottom').innerHTML = allSt.sort((a,b)=>a.x.pts-b.x.pts).slice(0,6).map(o=>it(o.x,o.t)).join('') || '<p class="muted small">No lineup data.</p>';
@@ -1041,6 +1049,7 @@ let MU = null, MUFROM = 'weekly';
 function openMatchup(year, week, team) { MUFROM = (location.hash.slice(1)||'dashboard'); MU = {year, week, team}; delete rendered.matchup; location.hash = '#matchup'; if (location.hash==='#matchup') show('matchup'); }
 function renderMatchup() {
   const m = MU || {year:CUR, week:LASTWK, team:ME}; MU = m;
+  if (!PLOG) { loadPlog().then(()=>{ delete rendered.matchup; if ((location.hash.slice(1)||'')==='matchup') renderMatchup(); }); }
   let wk = LINEUPS[`${m.year}-${m.week}`];
   if (!wk && m.year < CUR && !HISTP) { $('#mu-h').textContent = `${m.year} · Week ${m.week}`; $('#mu-sub').textContent=''; $('#mu-body').innerHTML = '<p class="muted">Loading lineups…</p>'; loadHist().then(()=>{ delete rendered.matchup; renderMatchup(); }); return; }
   if (!wk && m.year < CUR && HISTP) { HISTP.then(()=>{ if (LINEUPS[`${m.year}-${m.week}`] && !$('#mu-body').dataset.done) { $('#mu-body').dataset.done='1'; renderMatchup(); } }); }
@@ -1050,7 +1059,7 @@ function renderMatchup() {
   delete $('#mu-body').dataset.done;
   const b = wk[g.opp]; const win = g.pts > g.opp_pts;
   $('#mu-sub').innerHTML = `${m.team} ${num(g.pts)} – ${num(g.opp_pts)} ${g.opp} · <b class="${win?'cw':'cl'}">${m.team} ${win?'won':'lost'} by ${n1(Math.abs(g.pts-g.opp_pts))}</b>`;
-  const side = (t, L, tot) => { const bestTot = L ? sum(L.starters.map(x=>x.pts)) : 0; const benchTot = L ? sum(L.bench.map(x=>x.pts)) : 0; return `<div><h3>${avatar(t,1)}${mlink(t)}<span class="tot">${num(tot)}</span></h3>${L?`<div class="tbl"><table><tbody>${L.starters.map(x=>`<tr><td class="slot l">${x.slot}</td><td class="pl l"><b>${x.p?plink(x.n,t,m.year,m.week,x.p):esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></td><td class="num"><b>${n1(x.pts)}</b></td></tr>`).join('')}<tr><th class="bh" colspan="2">Bench · ${n1(benchTot)} pts</th><th></th></tr>${L.bench.map(x=>`<tr class="bench"><td class="slot l">BN</td><td class="pl l"><b>${x.p?plink(x.n,t,m.year,m.week,x.p):esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></td><td class="num">${n1(x.pts)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">No lineup data.</p>'}</div>`; };
+  const side = (t, L, tot) => { const bestTot = L ? sum(L.starters.map(x=>x.pts)) : 0; const benchTot = L ? sum(L.bench.map(x=>x.pts)) : 0; return `<div><h3>${avatar(t,1)}${mlink(t)}<span class="tot">${num(tot)}</span></h3>${L?`<div class="tbl"><table><tbody>${L.starters.map(x=>`<tr><td class="slot l">${x.slot}</td><td class="pl l" style="display:flex;align-items:center;gap:.5rem">${HEAD(findPlayer(x.n,x.p), 30, x.p)}<span><b>${x.p?plink(x.n,t,m.year,m.week,x.p):esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></span></td><td class="num"><b>${n1(x.pts)}</b></td></tr>`).join('')}<tr><th class="bh" colspan="2">Bench · ${n1(benchTot)} pts</th><th></th></tr>${L.bench.map(x=>`<tr class="bench"><td class="slot l">BN</td><td class="pl l" style="display:flex;align-items:center;gap:.5rem">${HEAD(findPlayer(x.n,x.p), 30, x.p)}<span><b>${x.p?plink(x.n,t,m.year,m.week,x.p):esc(x.n)}</b><span>${x.p||''}${x.t?' · '+x.t:''}</span></span></td><td class="num">${n1(x.pts)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">No lineup data.</p>'}</div>`; };
   $('#mu-body').innerHTML = `<div class="lineup">${side(m.team, a, g.pts)}${side(g.opp, b, g.opp_pts)}</div><p class="small" style="margin:.8rem 0 0"><a href="#${MUFROM==='matchup'?'weekly':MUFROM}">← Back to ${VIEWS[MUFROM]?VIEWS[MUFROM][0]:'Weekly Report'}</a></p>`;
 }
 
