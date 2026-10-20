@@ -468,7 +468,8 @@ function lineChart(series, weeks, opts) { // series: {name, pts:[{x,y}], color, 
   g += sorted.map(s => {
     const d = s.pts.map((p,i)=>(i?'L':'M')+xs(p.x).toFixed(1)+' '+ysc(p.y).toFixed(1)).join(' ');
     const last = s.pts[s.pts.length-1];
-    return `<path d="${d}" fill="none" stroke="${s.muted?'var(--ghost)':s.color}" stroke-width="${s.muted?1.5:2.5}" stroke-linejoin="round" stroke-linecap="round"/>` +
+    const dash = MPATTERN[s.name]==='dots' ? ' stroke-dasharray="1 5"' : MPATTERN[s.name]==='stripes' ? ' stroke-dasharray="8 5"' : '';
+    return `<path d="${d}" fill="none" stroke="${s.muted?'var(--ghost)':s.color}" stroke-width="${s.muted?1.5:MPATTERN[s.name]==='dots'?3.5:2.5}" stroke-linejoin="round" stroke-linecap="round"${dash}/>` +
       (s.muted ? '' : `<circle cx="${xs(last.x)}" cy="${ysc(last.y)}" r="4" fill="${s.color}" stroke="var(--card)" stroke-width="2"/>`) +
       (opts.endLabel && !s.muted ? `<text x="${xs(last.x)+8}" y="${ysc(last.y)+4}" style="fill:var(--fg);font-weight:600">${esc(s.name)}</text>` : '') +
       s.pts.map(p=>`<circle cx="${xs(p.x)}" cy="${ysc(p.y)}" r="9" fill="transparent" data-tip="${esc(s.name)} · ${opts.xlab?opts.xlab(p.x):'Week '+p.x}: <b>${opts.fmtTip?opts.fmtTip(p.y):p.y}</b>"/>`).join('');
@@ -624,7 +625,7 @@ function renderPower() {
   const nonMuted = series.filter(s=>!s.muted);
   $('#pw-chart').innerHTML = lineChart(series, weeks, {invert:true, y0:1, y1:12, ticks:11, h:320, endLabel:true, right:110, fmtTip:v=>'#'+v, fmtY:v=>'#'+Math.round(v)});
   bindTips($('#pw-chart'));
-  $('#pw-chips').innerHTML = `<button class="chip ${!PWSEL?'on':''}" data-t="">All teams</button>` + TEAMS.map((t,i)=>`<button class="chip ${PWSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${mcol(t)};margin-right:.35rem"></i>${esc(t)}</button>`).join('');
+  $('#pw-chips').innerHTML = `<button class="chip ${!PWSEL?'on':''}" data-t="">All teams</button>` + TEAMS.map((t,i)=>`<button class="chip ${PWSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;${mbg(t)};margin-right:.35rem"></i>${esc(t)}</button>`).join('');
   $('#pw-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ PWSEL=c.dataset.t; renderPower(); });
   // range chart
   const W=760, L=90, R=20; const rows=[...St.vals].sort((a,b)=>b.avg-a.avg); const lo=Math.min(...rows.map(r=>r.low))-5, hi=Math.max(...rows.map(r=>r.high))+5; const X=v=>L+(v-lo)/(hi-lo)*(W-L-R); const rh=26, H=rows.length*rh+30;
@@ -703,7 +704,7 @@ function renderForecast() {
   const series = res.map(r=>({name:r.team, color:mcol(r.team), muted:FCSEL && FCSEL!==r.team, pts:xs.map((w,i)=>({x:w, y:+(i?r.race[i-1]:r.cur).toFixed(2)}))}));
   $('#fc-race').innerHTML = lineChart(series, xs, {y0:0, y1:REGWEEKS, ticks:7, h:320, right:FCSEL?80:20, endLabel:!!FCSEL, xlab:w=>w===LASTWK?'Now':'W'+w, fmtY:v=>v.toFixed(0), fmtTip:v=>v.toFixed(2)+' wins'});
   bindTips($('#fc-race'));
-  $('#fc-chips').innerHTML = `<button class="chip ${!FCSEL?'on':''}" data-t="">All teams</button>` + TEAMS.map(t=>`<button class="chip ${FCSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${mcol(t)};margin-right:.35rem"></i>${t}</button>`).join('');
+  $('#fc-chips').innerHTML = `<button class="chip ${!FCSEL?'on':''}" data-t="">All teams</button>` + TEAMS.map(t=>`<button class="chip ${FCSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;${mbg(t)};margin-right:.35rem"></i>${t}</button>`).join('');
   $('#fc-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ FCSEL=c.dataset.t||null; const keep=FCRES; renderForecastCharts(); });
   renderForecastCharts();
   $('#fc-rerun').onclick = () => { FCSEED = (FCSEED*48271+1) % 2147483647; renderForecast(); };
@@ -879,7 +880,7 @@ function renderAlltime() {
   const series = ALLN.map((t,i)=>({name:t, color:mcol(t), muted:ATSEL && ATSEL!==t, pts:yrs.filter(y=>seasons.some(s=>s.team===t&&s.year===y)).map(y=>{ const s=seasons.find(q=>q.team===t&&q.year===y); return {x:y, y:+(s.regW/(s.regW+s.regL)*100).toFixed(1)}; })}));
   $('#at-chart').innerHTML = lineChart(series, yrs, {y0:0, y1:100, ticks:4, h:300, right:70, endLabel:!!ATSEL, xlab:y=>String(y).slice(2), fmtY:v=>Math.round(v)+'%', fmtTip:v=>v+'%'});
   bindTips($('#at-chart'));
-  $('#at-chips').innerHTML = `<button class="chip ${!ATSEL?'on':''}" data-t="">All</button>` + ALLN.map((t,i)=>`<button class="chip ${ATSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${mcol(t)};margin-right:.35rem"></i>${t}</button>`).join('');
+  $('#at-chips').innerHTML = `<button class="chip ${!ATSEL?'on':''}" data-t="">All</button>` + ALLN.map((t,i)=>`<button class="chip ${ATSEL===t?'on':''}" data-t="${t}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;${mbg(t)};margin-right:.35rem"></i>${t}</button>`).join('');
   $('#at-chips').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ ATSEL=c.dataset.t||null; renderAlltime(); });
 }
 
@@ -935,7 +936,7 @@ function renderManagers() {
     const hi=weekly.filter(r=>r.team===t).reduce((a,b)=>b.pts>a.pts?b:a);
     const W=300,H=70,L=4,R=4,T=8,B=14; const x=y=>L+(y-y0)/(y1-y0)*(W-L-R), yy=r=>T+(r-1)/11*(H-T-B);
     let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="height:auto;display:block" aria-label="Finish by season"><line class="ax" x1="${L}" x2="${W-R}" y1="${yy(1)}" y2="${yy(1)}"/><line class="ax" x1="${L}" x2="${W-R}" y1="${yy(12)}" y2="${yy(12)}"/>`;
-    if (fin.length) svg+=`<polyline fill="none" stroke="${mcol(t)}" stroke-width="2" points="${fin.map(r=>x(r.year)+','+yy(r.finalRank)).join(' ')}"/>`+fin.map(r=>`<circle cx="${x(r.year)}" cy="${yy(r.finalRank)}" r="${r.champW===1?4:2.5}" fill="${r.champW===1?'var(--gold)':mcol(t)}" data-tip="${r.year}: finished ${ord(r.finalRank)}${r.champW===1?' (champion)':''}, ${r.regW}-${r.regL}"/>`).join('');
+    if (fin.length) svg+=`<polyline fill="none" stroke="${mcol(t)}" stroke-width="${MPATTERN[t]==='dots'?3:2}" stroke-linecap="round"${MPATTERN[t]==='dots'?' stroke-dasharray="1 4"':MPATTERN[t]==='stripes'?' stroke-dasharray="6 4"':''} points="${fin.map(r=>x(r.year)+','+yy(r.finalRank)).join(' ')}"/>`+fin.map(r=>`<circle cx="${x(r.year)}" cy="${yy(r.finalRank)}" r="${r.champW===1?4:2.5}" fill="${r.champW===1?'var(--gold)':mcol(t)}" data-tip="${r.year}: finished ${ord(r.finalRank)}${r.champW===1?' (champion)':''}, ${r.regW}-${r.regL}"/>`).join('');
     svg+=`<text class="lbl" x="${L}" y="${H-2}" style="font-size:9px">${y0}</text><text class="lbl" x="${W-R}" y="${H-2}" text-anchor="end" style="font-size:9px">${y1}</text></svg>`;
     return {t, titles, wp:w/Math.max(1,w+l), html:`<div class="mgr" style="--c:${mcol(t)}"><div class="row" style="justify-content:space-between"><div class="nm">${t}</div><div>${TROPHY.repeat(titles)}${SHITTY.repeat(sh)}</div></div>
       <div class="muted small">${ss.length?`${ss[0].year}–${cur?'present':ss[ss.length-1].year} · ${ss.length} full seasons`:`${CUR} rookie`}</div>
