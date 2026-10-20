@@ -429,7 +429,7 @@ function renderDashboard() {
   $('#d-team').innerHTML = `<div class="team" style="margin-bottom:1rem">${avatar(ME).replace('class="av"','class="av" style="width:56px;height:56px;font-size:1.1rem"')}<div style="min-width:0"><h2 style="white-space:normal">${esc(teamName(ME))}</h2><div class="muted small">${esc(ME)} · Final Fantasy Football · Half PPR</div></div></div>
     <div class="kv"><div><div class="k">Record</div><div class="v">${me.w}-${me.l}${me.t?'-'+me.t:''}</div></div><div><div class="k">Standing</div><div class="v">${ord(me.rank)}</div></div><div><div class="k">Power rank</div><div class="v">#${me.prank}</div></div><div><div class="k">Points</div><div class="v">${n1(me.pf)}</div></div></div>
     <div class="ctl" style="margin-top:1rem"><label class="small muted" for="me-sel">Change team</label><select id="me-sel"></select></div>`;
-  sel('#me-sel', [...S.stand].map(s=>s.team), ME, t=>`${teamName(t)} (${t})`).onchange = e => { ME=e.target.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show('dashboard'); };
+  sel('#me-sel', [...S.stand].map(s=>s.team).sort(), ME, t=>`${t} (${teamName(t)})`).onchange = e => { ME=e.target.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show('dashboard'); };
   const g = CURW.find(r=>r.year===CUR && r.week===LASTWK && r.team===ME);
   const opp = g ? S.out[g.opp] : null;
   const rankThatWeek = g ? CURW.filter(r=>r.week===LASTWK).sort((a,b)=>b.pts-a.pts).findIndex(r=>r.team===ME)+1 : 0;
@@ -716,7 +716,7 @@ function meSelect() {
   const wrap=document.createElement('div'); wrap.className='ctl';
   const lab=document.createElement('label'); lab.className='small muted'; lab.htmlFor='me-top'; lab.textContent='Team';
   const e=document.createElement('select'); e.id='me-top';
-  [...S.stand].forEach(v=>{ const o=document.createElement('option'); o.value=v.team; o.textContent=`${teamName(v.team)} (${v.team})`; if(v.team===ME) o.selected=true; e.appendChild(o); });
+  [...S.stand].sort((a,b)=>a.team.localeCompare(b.team)).forEach(v=>{ const o=document.createElement('option'); o.value=v.team; o.textContent=`${v.team} (${teamName(v.team)})`; if(v.team===ME) o.selected=true; e.appendChild(o); });
   e.onchange=()=>{ ME=e.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show(location.hash.slice(1)||'dashboard'); };
   wrap.append(lab,e); return wrap;
 }
