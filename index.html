@@ -429,7 +429,7 @@ function renderDashboard() {
   $('#d-team').innerHTML = `<div class="team" style="margin-bottom:1rem">${avatar(ME).replace('class="av"','class="av" style="width:56px;height:56px;font-size:1.1rem"')}<div style="min-width:0"><h2 style="white-space:normal">${esc(teamName(ME))}</h2><div class="muted small">${esc(ME)} · Final Fantasy Football · Half PPR</div></div></div>
     <div class="kv"><div><div class="k">Record</div><div class="v">${me.w}-${me.l}${me.t?'-'+me.t:''}</div></div><div><div class="k">Standing</div><div class="v">${ord(me.rank)}</div></div><div><div class="k">Power rank</div><div class="v">#${me.prank}</div></div><div><div class="k">Points</div><div class="v">${n1(me.pf)}</div></div></div>
     <div class="ctl" style="margin-top:1rem"><label class="small muted" for="me-sel">Change team</label><select id="me-sel"></select></div>`;
-  sel('#me-sel', [...S.stand].map(s=>s.team), ME, t=>`${teamName(t)} (${t})`).onchange = e => { ME=e.target.value; try{localStorage.setItem('fff-me',ME);}catch(x){} renderDashboard(); };
+  sel('#me-sel', [...S.stand].map(s=>s.team), ME, t=>`${teamName(t)} (${t})`).onchange = e => { ME=e.target.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show('dashboard'); };
   const g = CURW.find(r=>r.year===CUR && r.week===LASTWK && r.team===ME);
   const opp = g ? S.out[g.opp] : null;
   const rankThatWeek = g ? CURW.filter(r=>r.week===LASTWK).sort((a,b)=>b.pts-a.pts).findIndex(r=>r.team===ME)+1 : 0;
@@ -697,13 +697,13 @@ function renderSeason() {
 
 /* ---------- routing ---------- */
 const VIEWS = {
-  dashboard:['Dashboard', `How your team stacks up in ${CUR}, with the latest week, your playoff path and roster activity.`, renderDashboard],
-  weekly:['Weekly Report', 'Results, awards and standings for any week this season.', renderWeekly, () => { const e=document.createElement('select'); e.id='wk-sel'; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=WK; e.onchange=()=>{WK=+e.value; renderWeekly();}; return e; }],
-  standings:['Standings', `${CUR} regular season, ${WEEKLABEL}.`, renderStandings],
-  power:['Power Rankings', 'Who is actually good, not just who has the wins.', renderPower, () => { const e=$('#pw-week'); e.innerHTML=''; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=PWW; e.onchange=()=>{PWW=+e.value; renderPower();}; return null; }],
-  xwins:['Expected Wins', 'Separating performance from schedule luck.', renderXwins],
-  playoffs:['Playoff Picture', `${PO} teams make it. Who is in, who is close, who is done.`, renderPlayoffs],
-  activity:['Roster Activity', 'Who is working the waiver wire and who is set-and-forget.', renderActivity],
+  dashboard:['Dashboard', `How your team stacks up in ${CUR}, with the latest week, your playoff path and roster activity.`, renderDashboard, meSelect],
+  weekly:['Weekly Report', 'Results, awards and standings for any week this season.', renderWeekly, () => { const e=document.createElement('select'); e.id='wk-sel'; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=WK; e.onchange=()=>{WK=+e.value; renderWeekly();}; const w=meSelect(); w.prepend(e); return w; }],
+  standings:['Standings', `${CUR} regular season, ${WEEKLABEL}.`, renderStandings, meSelect],
+  power:['Power Rankings', 'Who is actually good, not just who has the wins.', renderPower, () => { const e=$('#pw-week'); e.innerHTML=''; for(let w=LASTWK;w>=1;w--){const o=document.createElement('option');o.value=w;o.textContent='Week '+w;e.appendChild(o);} e.value=PWW; e.onchange=()=>{PWW=+e.value; renderPower();}; PWSEL=ME; return meSelect(); }],
+  xwins:['Expected Wins', 'Separating performance from schedule luck.', renderXwins, meSelect],
+  playoffs:['Playoff Picture', `${PO} teams make it. Who is in, who is close, who is done.`, renderPlayoffs, meSelect],
+  activity:['Roster Activity', 'Who is working the waiver wire and who is set-and-forget.', renderActivity, meSelect],
   champions:['Champions & Shitties', 'Every Titty and every Shitty since 2014.', renderChampions],
   alltime:['All-time Standings', 'Thirteen seasons across NFL.com and Sleeper.', renderAlltime],
   h2h:['Head-to-head', 'Every rivalry, all-time.', renderH2H],
@@ -712,6 +712,14 @@ const VIEWS = {
   seasons:['Season Archive', 'Any season, standings and weekly scores.', renderSeason, () => { const e=$('#se-year'); e.innerHTML=[...YEARS].reverse().map(y=>`<option value="${y}" ${y===SEY?'selected':''}>${y}</option>`).join(''); e.onchange=()=>{SEY=+e.value; renderSeason();}; return null; }],
 };
 const rendered = {};
+function meSelect() {
+  const wrap=document.createElement('div'); wrap.className='ctl';
+  const lab=document.createElement('label'); lab.className='small muted'; lab.htmlFor='me-top'; lab.textContent='Team';
+  const e=document.createElement('select'); e.id='me-top';
+  [...S.stand].forEach(v=>{ const o=document.createElement('option'); o.value=v.team; o.textContent=`${teamName(v.team)} (${v.team})`; if(v.team===ME) o.selected=true; e.appendChild(o); });
+  e.onchange=()=>{ ME=e.value; try{localStorage.setItem('fff-me',ME);}catch(x){} for (const k in rendered) delete rendered[k]; show(location.hash.slice(1)||'dashboard'); };
+  wrap.append(lab,e); return wrap;
+}
 function show(v) {
   if (!VIEWS[v]) v = 'dashboard';
   document.querySelectorAll('main section').forEach(s=>s.hidden = s.id!=='v-'+v);
