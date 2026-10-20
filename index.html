@@ -395,9 +395,9 @@ const REGWEEKS = META.playoffWeekStart - 1;
 const PO = META.playoffTeams;
 const tm = n => META.teams[n] || {};
 const teamName = n => n; // team names intentionally not shown; managers only
-const MCOLOR = {Adam:"#e02424",Brooks:"#f26f0c",Mike:"#d49a00",Scott:"#8f9a1b",Colin:"#2e9e3f",Nico:"#0f8a7a",Deakin:"#1aa6d6",Brian:"#2b6fd6",Urbinsky:"#4b3fcf",Dave:"#8a3fc0",Mark:"#c43fa8",Matt:"#e8407a",Ken:"#8a8f8c"};
+const MCOLOR = {Adam:"#e02424",Brooks:"#f26f0c",Mike:"#2e9e3f",Scott:"#8f9a1b",Colin:"#d49a00",Nico:"#0f8a7a",Deakin:"#1aa6d6",Brian:"#2b6fd6",Urbinsky:"#4b3fcf",Dave:"#8a3fc0",Mark:"#c43fa8",Matt:"#e8407a",Ken:"#8a8f8c"};
 // patterns separate look-alike colours: dots and stripes over the base colour
-const MPATTERN = {Urbinsky:'dots', Mark:'dots', Scott:'dots', Deakin:'stripes', Matt:'stripes', Mike:'stripes'};
+const MPATTERN = {Urbinsky:'dots', Mark:'dots', Scott:'dots', Deakin:'stripes', Matt:'stripes', Colin:'stripes'};
 const mbg = n => { const c = mcol(n), p = MPATTERN[n]; if (p==='dots') return `background-color:${c};background-image:radial-gradient(rgba(255,255,255,.55) 28%,transparent 32%);background-size:6px 6px`; if (p==='stripes') return `background-color:${c};background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.45) 0 2px,transparent 2px 6px)`; return `background-color:${c}`; };
 const sw = n => `<span class="sw" style="${mbg(n)}"></span>`;
 const mcol = n => MCOLOR[n] || '#6b7280';
