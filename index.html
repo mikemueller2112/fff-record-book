@@ -897,12 +897,13 @@ function optimalPts(L) { // best possible lineup from starters + bench
   SLOTRULES.forEach(([sl,n]) => take(sl==='FLEX'?['WR','RB']:[sl], n)); return tot;
 }
 const plink = (name, mgr, year, week, pos) => `<a class="pl" href="#player" data-n="${esc(name)}" data-p="${pos||''}" data-mgr="${esc(mgr)}" data-y="${year}" data-w="${week}" title="Player summary">${esc(name)}</a>`;
-let PLOG = null, PLOGP = null, PLSEL = null;
+let PLOG = null, PLOGP = null, PLSEL = null, PLYEAR = CUR; const PLHIST = {};
+const loadPlogYear = y => PLHIST[y] ? Promise.resolve(PLHIST[y]) : fetch(`playerlog_${y}.json`).then(r=>r.ok?r.json():{}).then(d=>{ PLHIST[y]=d; return d; }).catch(()=>{ PLHIST[y]={}; return PLHIST[y]; });
 const loadPlog = () => PLOGP || (PLOGP = fetch('playerlog.json').then(r=>r.ok?r.json():{}).then(d=>{ PLOG = d; return d; }).catch(()=>{ PLOG = {}; return PLOG; }));
 const findPlayer = (name, pos) => { if (!PLOG) return null; const hit = Object.entries(PLOG).filter(([k,v])=>v.n===name && (!pos||v.p===pos)); return hit.length ? hit[0][0] : null; };
 document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a.pl'); if (a) { e.preventDefault(); e.stopPropagation(); openPlayer(a.dataset.n, a.dataset.p, a.dataset.mgr, +a.dataset.y, +a.dataset.w); } }, true);
 function openPlayer(name, pos, mgr, year, week) {
-  PLSEL = {name, pos, mgr, year, week}; delete rendered.player; location.hash = '#player'; if (location.hash==='#player') show('player');
+  PLSEL = {name, pos, mgr, year, week}; PLYEAR = CUR; delete rendered.player; location.hash = '#player'; if (location.hash==='#player') show('player');
 }
 const SNP = r => { const a = r.off_snp ?? r.def_snp, b = r.tm_off_snp ?? r.tm_def_snp; return a!=null && b ? Math.round(a/b*100) : null; };
 const COLS = {
@@ -923,21 +924,31 @@ function renderPlayer() {
   $('#pl-hd').innerHTML = `<div class="av" style="width:64px;height:64px;background:var(--rail);color:var(--gold);font-family:var(--display);font-size:1.3rem;font-weight:800">${esc(v.p||'')}</div><div><h1 style="font-size:2.4rem">${esc(v.n)}</h1><div class="muted">${v.p||''}${v.t?' · '+v.t:''}${v.num!=null?' · #'+v.num:''}${v.inj?` · <span class="cl">${esc(v.inj)}</span>`:''}${v.col?' · '+esc(v.col):''}</div><div class="small" style="margin-top:.2rem">${curOwn?`Rostered by ${mlink(curOwn[0])} in this league`:'Free agent in this league'}${q.mgr&&q.week?` · <a href="#matchup" id="pl-mu">Week ${q.week} matchup →</a>`:''}</div></div>`;
   const a=$('#pl-mu'); if (a) a.onclick=(e)=>{ e.preventDefault(); openMatchup(q.year, q.week, q.mgr); };
   const logs = Object.entries(v.log); const tot = sum(logs.map(([w,r])=>r.pts)); const gp = logs.length;
-  $('#pl-tiles').innerHTML = `<div class="tile"><div class="k">Age</div><div class="v">${v.age??'–'}</div></div><div class="tile"><div class="k">Height</div><div class="v">${ht}</div></div><div class="tile"><div class="k">Weight</div><div class="v">${v.wt?v.wt+' lbs':'–'}</div></div><div class="tile"><div class="k">Exp</div><div class="v">${v.exp??'–'}</div></div><div class="tile"><div class="k">${CUR} points</div><div class="v">${n1(tot)}</div><div class="d">${gp} game${gp===1?'':'s'} · ${n1(gp?tot/gp:0)} per game</div></div>`;
-  const cols = COLS[v.p] || []; const rk = r => r.rank==null?'c-n':r.rank<=6?'c-g':r.rank<=12?'c-y':r.rank<=24?'c-y':'c-r';
-  const bucket = (k, x) => { if (x==null) return 'c-n'; const good = {pass_yd:[250,300],pass_td:[2,3],pass_cmp:[20,25],pass_att:[30,35],rush_yd:[60,100],rush_td:[1,2],rush_att:[12,18],rec_yd:[60,100],rec:[5,8],rec_tgt:[6,9],rec_td:[1,2],fgm:[2,3],xpm:[2,4],sack:[2,4],int:[1,2]}; const bad = {pass_int:[1,2],fum_lost:[1,2],pts_allow:[17,27],yds_allow:[300,400]}; if (bad[k]) return x>=bad[k][1]?'c-r':x>=bad[k][0]?'c-y':'c-g'; if (good[k]) return x>=good[k][1]?'c-g':x>=good[k][0]?'c-y':'c-r'; return ''; };
-  const groups = cols.reduce((m,c)=>{ if (c[0]) m.push([c[0],1]); else m[m.length-1][1]++; return m; }, []);
-  $('#pl-log-h').textContent = `${CUR} game log`; $('#pl-log-sub').textContent = 'Fantasy points use this league\'s scoring; rank is among ' + (v.p||'position') + 's that week. SNP% is share of team snaps.';
-  let html = `<table><thead><tr><th></th><th></th><th colspan="3" class="l" style="color:var(--fg)">Fantasy</th>${groups.map(g=>`<th colspan="${g[1]}" class="l" style="color:var(--fg)">${g[0]}</th>`).join('')}<th></th></tr><tr><th>WK</th><th class="l">OPP</th><th>FPTS</th><th>SNP%</th><th>RANK</th>${cols.map(c=>`<th>${c[2]}</th>`).join('')}<th class="l">FFF</th></tr></thead><tbody>`;
-  for (let w=1; w<=18; w++) { const r = v.log[String(w)]; const o = v.sched[String(w)] || '–'; const ow = own[String(w)];
-    if (o==='BYE') { html += `<tr><td>${w}</td><td class="l"><b>BYE</b></td>${'<td><span class="cell c-n"></span></td>'.repeat(3+cols.length)}<td></td></tr>`; continue; }
-    if (!r) { html += `<tr><td>${w}</td><td class="l muted">${esc(o)}</td>${'<td><span class="cell c-n">-</span></td>'.repeat(3+cols.length)}<td class="l small muted">${ow?`${ow[0]} (${ow[1]==='S'?'started':'bench'})`:''}</td></tr>`; continue; }
-    const sn = SNP(r);
-    html += `<tr><td>${w}</td><td class="l">${esc(o)}</td><td><span class="cell" style="background:var(--hover);font-weight:700">${n1(r.pts)}</span></td><td><span class="cell ${sn==null?'c-n':sn>=70?'c-g':sn>=40?'c-y':'c-r'}">${sn==null?'-':sn}</span></td><td><span class="cell ${rk(r)}">${r.rank??'-'}</span></td>${cols.map(c=>`<td><span class="cell ${bucket(c[1], r[c[1]])}">${r[c[1]]??0}</span></td>`).join('')}<td class="l small">${ow?`${mlink(ow[0])} <span class="muted">(${ow[1]==='S'?'started':'bench'})</span>`:'<span class="muted">free agent</span>'}</td></tr>`;
-  }
-  $('#pl-log').innerHTML = html + '</tbody></table>';
-  $('#pl-chart').innerHTML = logs.length ? barChart(logs.map(([w,r])=>({label:'W'+w, v:r.pts, color: own[w]?(own[w][1]==='S'?'var(--win)':'var(--gold)'):'var(--ghost)', tip:`Week ${w} vs ${v.sched[w]||'?'}: ${n1(r.pts)}${own[w]?` · ${own[w][0]} (${own[w][1]==='S'?'started':'bench'})`:' · free agent'}`})), {h:220}) + `<div class="leg"><span><i style="background:var(--win)"></i>Started in this league</span><span><i style="background:var(--gold)"></i>On a bench</span><span><i style="background:var(--ghost)"></i>Free agent</span></div>` : '<p class="muted small">No games yet.</p>';
-  bindTips($('#pl-chart'));
+  const seas = v.seasons || {}; const careerPts = tot + sum(Object.values(seas).map(x=>x.pts)), careerG = gp + sum(Object.values(seas).map(x=>x.g));
+  $('#pl-tiles').innerHTML = `<div class="tile"><div class="k">Age</div><div class="v">${v.age??'–'}</div></div><div class="tile"><div class="k">Height</div><div class="v">${ht}</div></div><div class="tile"><div class="k">Weight</div><div class="v">${v.wt?v.wt+' lbs':'–'}</div></div><div class="tile"><div class="k">Exp</div><div class="v">${v.exp??'–'}</div></div><div class="tile"><div class="k">${CUR} points</div><div class="v">${n1(tot)}</div><div class="d">${gp} game${gp===1?'':'s'} · ${n1(gp?tot/gp:0)} per game</div></div><div class="tile"><div class="k">Career (since ${Math.min(CUR,...Object.keys(seas).map(Number))})</div><div class="v">${n1(careerPts)}</div><div class="d">${careerG} games · ${n1(careerG?careerPts/careerG:0)} per game</div></div>`;
+  const years = [CUR, ...Object.keys(v.seasons||{}).map(Number).sort((a,b)=>b-a)];
+  const chips = `<div class="chips" style="margin-bottom:.7rem">${years.map(y=>`<button class="chip ${PLYEAR===y?'on':''}" data-y="${y}">${y}${y!==CUR&&v.seasons[y]?` <span class="muted">· ${n1(v.seasons[y].pts)}</span>`:''}</button>`).join('')}</div>`;
+  const drawLog = (log, year, sched, own) => {
+    const cols = COLS[v.p] || []; const rk = r => r.rank==null?'c-n':r.rank<=6?'c-g':r.rank<=12?'c-y':r.rank<=24?'c-y':'c-r';
+    const bucket = (k, x) => { if (x==null) return 'c-n'; const good = {pass_yd:[250,300],pass_td:[2,3],pass_cmp:[20,25],pass_att:[30,35],rush_yd:[60,100],rush_td:[1,2],rush_att:[12,18],rec_yd:[60,100],rec:[5,8],rec_tgt:[6,9],rec_td:[1,2],fgm:[2,3],xpm:[2,4],sack:[2,4],int:[1,2]}; const bad = {pass_int:[1,2],fum_lost:[1,2],pts_allow:[17,27],yds_allow:[300,400]}; if (bad[k]) return x>=bad[k][1]?'c-r':x>=bad[k][0]?'c-y':'c-g'; if (good[k]) return x>=good[k][1]?'c-g':x>=good[k][0]?'c-y':'c-r'; return ''; };
+    const groups = cols.reduce((m,c)=>{ if (c[0]) m.push([c[0],1]); else m[m.length-1][1]++; return m; }, []);
+    const logs = Object.entries(log); const tot = sum(logs.map(([w,r])=>r.pts));
+    $('#pl-log-h').textContent = `${year} game log`; $('#pl-log-sub').textContent = `${logs.length} game${logs.length===1?'':'s'}, ${n1(tot)} points under this league's scoring${year!==CUR?' (today\'s settings applied to that season)':''}; rank is among ${v.p||'position'}s that week. SNP% is share of team snaps.${year!==CUR?' Opponents are not available for past seasons.':''}`;
+    let html = chips + `<table><thead><tr><th></th><th></th><th colspan="3" class="l" style="color:var(--fg)">Fantasy</th>${groups.map(g=>`<th colspan="${g[1]}" class="l" style="color:var(--fg)">${g[0]}</th>`).join('')}<th></th></tr><tr><th>WK</th><th class="l">OPP</th><th>FPTS</th><th>SNP%</th><th>RANK</th>${cols.map(c=>`<th>${c[2]}</th>`).join('')}<th class="l">FFF</th></tr></thead><tbody>`;
+    const nweeks = year>=2021?18:17;
+    for (let w=1; w<=nweeks; w++) { const r = log[String(w)]; const o = sched ? (sched[String(w)] || '–') : '–'; const ow = own[String(w)];
+      if (o==='BYE') { html += `<tr><td>${w}</td><td class="l"><b>BYE</b></td>${'<td><span class="cell c-n"></span></td>'.repeat(3+cols.length)}<td></td></tr>`; continue; }
+      if (!r) { html += `<tr><td>${w}</td><td class="l muted">${esc(o)}</td>${'<td><span class="cell c-n">-</span></td>'.repeat(3+cols.length)}<td class="l small muted">${ow?`${ow[0]} (${ow[1]==='S'?'started':'bench'})`:''}</td></tr>`; continue; }
+      const sn = SNP(r);
+      html += `<tr><td>${w}</td><td class="l">${esc(o)}</td><td><span class="cell" style="background:var(--hover);font-weight:700">${n1(r.pts)}</span></td><td><span class="cell ${sn==null?'c-n':sn>=70?'c-g':sn>=40?'c-y':'c-r'}">${sn==null?'-':sn}</span></td><td><span class="cell ${rk(r)}">${r.rank??'-'}</span></td>${cols.map(c=>`<td><span class="cell ${bucket(c[1], r[c[1]])}">${r[c[1]]??0}</span></td>`).join('')}<td class="l small">${ow?`${mlink(ow[0])} <span class="muted">(${ow[1]==='S'?'started':'bench'})</span>`:(year===CUR?'<span class="muted">free agent</span>':'')}</td></tr>`;
+    }
+    $('#pl-log').innerHTML = html + '</tbody></table>';
+    $('#pl-log').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ PLYEAR=+c.dataset.y; delete rendered.player; renderPlayer(); });
+    $('#pl-chart').innerHTML = logs.length ? barChart(logs.map(([w,r])=>({label:'W'+w, v:r.pts, color: own[w]?(own[w][1]==='S'?'var(--win)':'var(--gold)'):'var(--ghost)', tip:`${year} week ${w}${sched&&sched[w]?' vs '+sched[w]:''}: ${n1(r.pts)}${own[w]?` · ${own[w][0]} (${own[w][1]==='S'?'started':'bench'})`:(year===CUR?' · free agent':'')}`})), {h:220}) + (year===CUR?`<div class="leg"><span><i style="background:var(--win)"></i>Started in this league</span><span><i style="background:var(--gold)"></i>On a bench</span><span><i style="background:var(--ghost)"></i>Free agent</span></div>`:'') : '<p class="muted small">No games that season.</p>';
+    bindTips($('#pl-chart'));
+  };
+  if (PLYEAR === CUR) drawLog(v.log, CUR, v.sched, v.own || {});
+  else { $('#pl-log').innerHTML = chips + '<p class="muted">Loading…</p>'; $('#pl-chart').innerHTML=''; $('#pl-log').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ PLYEAR=+c.dataset.y; delete rendered.player; renderPlayer(); }); const y=PLYEAR; loadPlogYear(y).then(d=>{ if (PLYEAR!==y) return; drawLog((d[pid]||{}), y, null, {}); }); }
 }
 function weekFacts(year, week) {
   const rows = weekly.filter(r=>r.year===year && r.week===week); if (!rows.length) return null;
