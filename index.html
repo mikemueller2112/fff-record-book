@@ -209,7 +209,13 @@ a.pl{color:var(--fg);font-weight:600;text-decoration:none;border-bottom:1px dott
 /* history (styled like the Record Book page) */
 .ul{border-bottom:3px solid var(--c);padding-bottom:1px}
 a.ml{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line2)} a.ml:hover{color:var(--accent);border-bottom-color:var(--accent)}
-.mgr-hd{display:flex;align-items:center;gap:1rem;flex-wrap:wrap} .mgr-hd .hs{width:96px;height:96px;font-size:1.4rem}
+.mgr-hd{display:flex;align-items:center;gap:1.1rem;flex-wrap:wrap}
+.mgphoto{position:relative;width:150px;height:150px;flex:0 0 auto;border-radius:14px;overflow:hidden;border:3px solid var(--c);background:var(--c);box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.mgphoto img{width:100%;height:100%;object-fit:cover;display:block}
+.mgphoto .ph{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;color:#fff;background:color-mix(in srgb,var(--c) 70%,#000);font:600 .72rem/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:.5rem}
+.mgphoto .ph svg{width:56px;height:56px;opacity:.85}
+.mgphoto.nophoto .ph{display:flex} .mgphoto.nophoto img{display:none}
+@media (max-width:560px){.mgphoto{width:110px;height:110px}} .mgr-hd .hs{width:96px;height:96px;font-size:1.4rem}
 .sw{display:inline-block;width:.7em;height:.7em;border-radius:2px;margin-right:.4em;vertical-align:-.02em}
 .timeline{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem}
 .yr{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:.7rem .8rem;border-top:3px solid var(--gold)}
@@ -1208,7 +1214,9 @@ const VIEWS = {
   xwins:['Expected Wins', 'Separating performance from schedule luck.', renderXwins, meSelect],
   playoffs:['Playoff Picture', `${PO} teams make it. Who is in, who is close, who is done.`, renderPlayoffs, meSelect],
   forecast:['Season Forecast', 'Simulate the remaining schedule using current records, roster projections and scoring volatility.', renderForecast, meSelect],
-  manager:['Manager', 'Career line and season-by-season record.', renderManager],
+  manager:['Manager', 'Career line and season-by-season record.', renderManager, () => { const t = MG || ME; const d=document.createElement('div'); d.className='mgphoto'; d.style.setProperty('--c', mcol(t)); d.title=t;
+    d.innerHTML=`<img src="img/mgr/${encodeURIComponent(t)}.jpg" alt="${esc(t)}"><div class="ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>Photo coming</div>`;
+    d.querySelector('img').onerror = () => d.classList.add('nophoto'); return d; }],
   player:['Player', 'Bio and week-by-week game log from Sleeper, scored with this league\'s settings.', renderPlayer],
   matchup:['Matchup', 'Starters and bench for both sides. 2014–2022 lineups come from the NFL.com record sheet (abbreviated names); 2023 on from Sleeper.', renderMatchup],
   activity:['Roster Activity', 'Who is working the waiver wire and who is set-and-forget.', renderActivity, meSelect],
