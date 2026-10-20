@@ -285,7 +285,7 @@ svg.ch .ax{stroke:var(--line2);stroke-width:1}
   <section id="v-weekly" hidden>
     <div class="card"><div class="hd"><h2 id="wk-h">Week</h2><p id="wk-sub"></p></div><div class="awards" id="wk-awards"></div></div>
     <div class="grid2">
-      <div class="card"><div class="hd"><h2>Results</h2><p>Final scores, highest-scoring game first.</p></div><div id="wk-games"></div></div>
+      <div class="card"><div class="hd"><h2>Results</h2><p id="wk-games-sub">Final scores, highest-scoring game first.</p></div><div id="wk-games"></div></div>
       <div class="card"><div class="hd"><h2>Scoreboard</h2><p>Everyone's score that week, with the league average marked.</p></div><div id="wk-board"></div></div>
     </div>
     <div class="card"><div class="hd"><h2>Top performers</h2><p>Best scores at each position that week under league scoring, with the manager who had them. Bench and unrostered players are noted.</p></div><div class="awards" id="wk-top"></div></div>
@@ -591,8 +591,9 @@ function renderWeekly() {
     over ? ['Underachiever', nm(over[over.length-1].r.team), `${n1(over[over.length-1].d)} under their season average`] : null,
   ].filter(Boolean);
   $('#wk-awards').innerHTML = aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v" style="display:flex;flex-wrap:wrap;gap:.3rem .4rem;align-items:center">${a[1]}</div><div class="d">${esc(a[2])}</div></div>`).join('');
-  $('#wk-games').innerHTML = games.map(g=>`<div class="mu ${WY===CUR?'clicky':''}" data-a="${g.a}" title="${WY===CUR?'Open the matchup':''}"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${g.a}</div><div class="o">${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${g.b}</div><div class="o">${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?g.a:g.b} by ${n1(g.m)} · ${n1(g.tot)} combined</div></div>`).join('');
-  if (WY===CUR) $('#wk-games').querySelectorAll('.mu').forEach(el=>el.onclick=()=>openMatchup(WY, WK, el.dataset.a));
+  $('#wk-games').innerHTML = games.map(g=>`<div class="mu ${WY===CUR?'clicky':''}" data-a="${g.a}" title="${WY===CUR?'Open the matchup':''}"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${g.a}</div><div class="o">${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${g.b}</div><div class="o">${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?g.a:g.b} by ${n1(g.m)} · ${n1(g.tot)} combined${WY===CUR?' · <a href="#matchup">View lineups →</a>':''}</div></div>`).join('');
+  $('#wk-games-sub').textContent = WY===CUR ? 'Final scores, highest-scoring game first. Click a game to see both lineups.' : 'Final scores, highest-scoring game first.';
+  if (WY===CUR) $('#wk-games').querySelectorAll('.mu').forEach(el=>el.onclick=(e)=>{ e.preventDefault(); openMatchup(WY, WK, el.dataset.a); });
   $('#wk-board').innerHTML = hbar([...rows].sort((a,b)=>b.pts-a.pts).map(r=>({label:r.team, html:`${avatar(r.team,1)}<span>${r.team}</span>`, sub:r.win?'(W)':'(L)', subCls:r.win?'cw':'cl', v:r.pts, color:r.win?'var(--win)':'var(--loss)', tip:`${esc(r.team)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}`})), {max:Math.max(...rows.map(r=>r.pts)), marker:avg, markerLabel:`League average ${n1(avg)}`}) + `<p class="small muted" style="margin:.6rem 0 0"><span style="display:inline-block;width:14px;border-top:2px dotted var(--fg);vertical-align:middle;margin-right:.4rem"></span>League average ${n1(avg)}. ${rows.filter(r=>r.pts>avg).length} teams above it.</p>`;
   bindTips($('#wk-board'));
   const tp = PLAYERS[`${WY}-${WK}`];
