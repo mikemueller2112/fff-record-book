@@ -675,7 +675,7 @@ function renderManagers() {
     return {t, titles, wp:w/Math.max(1,w+l), html:`<div class="mgr" style="--c:${mcol(t)}"><div class="row" style="justify-content:space-between"><div class="nm">${t}</div><div>${'🏆'.repeat(titles)}${'💩'.repeat(sh)}</div></div>
       <div class="muted small">${ss.length?`${ss[0].year}–${cur?'present':ss[ss.length-1].year} · ${ss.length} full seasons`:`${CUR} rookie`}${cur?` · ${esc(teamName(t))}`:''}</div>
       <div class="stats"><div><b>${w}–${l}</b><span>Reg. record</span></div><div><b>${pct(w/Math.max(1,w+l))}</b><span>Win %</span></div><div><b>${n1(pf/Math.max(1,w+l))}</b><span>PPG</span></div>
-      <div><b>${po}</b><span>Playoffs</span></div><div><b>${titles}/${ru}</b><span>Titties / RU</span></div><div><b>${sh?'💩'.repeat(sh):'–'}</b><span>Shitties</span></div></div>
+      <div><b>${po}</b><span>Playoffs</span></div><div><b>${titles?'🏆'.repeat(titles):'–'}${ru?'🥈'.repeat(ru):''}</b><span>Titties / RU</span></div><div><b>${sh?'💩'.repeat(sh):'–'}</b><span>Shitties</span></div></div>
       ${svg}
       <div class="small muted">Best finish: ${best?ord(best):'–'}${bestYr?' ('+bestYr+')':''} · Season high: ${num(hi.pts)} (${hi.year} wk ${hi.week})</div></div>`}; });
   $('#mg-cards').innerHTML = cards.sort((a,b)=>b.titles-a.titles||b.wp-a.wp).map(c=>c.html).join('');
