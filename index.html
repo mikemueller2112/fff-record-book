@@ -596,7 +596,7 @@ function renderStandings() {
 }
 function weekGrid(el, year) {
   const wk = weekly.filter(r=>r.year===year); const weeks=[...new Set(wk.map(r=>r.week))].sort((a,b)=>a-b); const teams=[...new Set(wk.map(r=>r.team))].sort((a,b)=>sum(wk.filter(r=>r.team===b).map(r=>r.pts))-sum(wk.filter(r=>r.team===a).map(r=>r.pts)));
-  el.innerHTML = '<table><thead><tr><th class="l">Team</th>'+weeks.map(w=>`<th>W${w}</th>`).join('')+'<th>Avg</th></tr></thead><tbody>'+teams.map(t=>{ const mine=wk.filter(r=>r.team===t); return `<tr class="${t===ME&&year===CUR?'me':''}"><td class="l">${esc(t)}</td>`+weeks.map(w=>{ const r=mine.find(q=>q.week===w); if(!r) return '<td class="muted">–</td>'; return `<td data-tip="W${w}: ${esc(t)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}" class="${r.win?'cw':'cl'}">${n1(r.pts)}</td>`; }).join('')+`<td><b>${n1(mean(mine.map(r=>r.pts)))}</b></td></tr>`; }).join('')+'</tbody></table>';
+  el.innerHTML = '<table><thead><tr><th class="l">Team</th>'+weeks.map(w=>`<th>W${w}</th>`).join('')+'<th>Avg</th></tr></thead><tbody>'+teams.map(t=>{ const mine=wk.filter(r=>r.team===t); return `<tr class="${t===ME?'me':''}"><td class="l">${esc(t)}</td>`+weeks.map(w=>{ const r=mine.find(q=>q.week===w); if(!r) return '<td class="muted">–</td>'; return `<td data-tip="W${w}: ${esc(t)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}" class="${r.win?'cw':'cl'}">${n1(r.pts)}</td>`; }).join('')+`<td><b>${n1(mean(mine.map(r=>r.pts)))}</b></td></tr>`; }).join('')+'</tbody></table>';
   bindTips(el);
 }
 
@@ -942,7 +942,7 @@ function renderSeason() {
   sortable($('#se-tbl'), [
     {key:'regRank',label:'#'}, {key:'team',label:'Manager',left:true,fmt:r=>teamCell(r.team,1)}, {key:'regW',label:'W'}, {key:'regL',label:'L'}, {key:'PF',label:'PF',fmt:r=>n1(r.PF)}, {key:'PA',label:'PA',fmt:r=>n1(r.PA)}, {key:'ap_pct',label:'All-play',fmt:r=>r.ap},
     {key:'finalRank',label:'Finish',fmt:r=>r.finalRank?(r.finalRank===1?'🏆 1st':(r.finalRank===lastRank?'💩 ':'')+ord(r.finalRank)):'–'}, {key:'poApp',label:'Playoffs',fmt:r=>r.poApp==null?'–':r.poApp?'Yes':'No'}, {key:'high',label:'High',fmt:r=>r.high?n1(r.high):n1(St.out[r.team]?.high)}, {key:'low',label:'Low',fmt:r=>r.low?n1(r.low):n1(St.out[r.team]?.low)}, {key:'moves',label:'Moves',fmt:r=>r.moves??'–'},
-  ], rows, 'regRank', false, r=>r.team===ME&&SEY===CUR?'me':'');
+  ], rows, 'regRank', false, r=>r.team===ME?'me':'');
   weekGrid($('#se-grid'), SEY);
 }
 
