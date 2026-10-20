@@ -939,7 +939,7 @@ function renderSeason() {
   $('#se-h').textContent = `${SEY} season${SEY===CUR?' ('+WEEKLABEL+')':''}`;
   const rows = ss.map(s=>({...s, name:s.team, ap:St.out[s.team]?`${St.out[s.team].ap_w}-${St.out[s.team].ap_l}`:'–', ap_pct:St.out[s.team]?St.out[s.team].ap_pct:0}));
   sortable($('#se-tbl'), [
-    {key:'regRank',label:'#'}, {key:'team',label:'Manager',left:true,fmt:r=>SEY===CUR?teamCell(r.team,1):`${sw(r.team)}<b>${r.team}</b>`}, {key:'regW',label:'W'}, {key:'regL',label:'L'}, {key:'PF',label:'PF',fmt:r=>n1(r.PF)}, {key:'PA',label:'PA',fmt:r=>n1(r.PA)}, {key:'ap_pct',label:'All-play',fmt:r=>r.ap},
+    {key:'regRank',label:'#'}, {key:'team',label:'Manager',left:true,fmt:r=>teamCell(r.team,1)}, {key:'regW',label:'W'}, {key:'regL',label:'L'}, {key:'PF',label:'PF',fmt:r=>n1(r.PF)}, {key:'PA',label:'PA',fmt:r=>n1(r.PA)}, {key:'ap_pct',label:'All-play',fmt:r=>r.ap},
     {key:'finalRank',label:'Finish',fmt:r=>r.finalRank?(r.finalRank===1?'🏆 1st':ord(r.finalRank)):'–'}, {key:'poApp',label:'Playoffs',fmt:r=>r.poApp==null?'–':r.poApp?'Yes':'No'}, {key:'high',label:'High',fmt:r=>r.high?n1(r.high):n1(St.out[r.team]?.high)}, {key:'low',label:'Low',fmt:r=>r.low?n1(r.low):n1(St.out[r.team]?.low)}, {key:'moves',label:'Moves',fmt:r=>r.moves??'–'},
   ], rows, 'regRank', false, r=>r.team===ME&&SEY===CUR?'me':'');
   weekGrid($('#se-grid'), SEY);
