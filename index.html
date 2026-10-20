@@ -194,7 +194,7 @@ for (const m of MANAGERS){
   const totalGames = D.games.length;
   const tiles = [
     ['13','Seasons','2014 – 2026'],
-    [MANAGERS.length,'Managers','11 active in 2026'],
+    [MANAGERS.length,'Managers',byYear(CUR).length+' active in 2026'],
     [totalGames.toLocaleString(),'Regular-season games','logged week by week'],
     [num(D.weekly.reduce((a,r)=>a+r.pts,0),0),'Points scored','regular season, all-time'],
   ];
