@@ -560,17 +560,18 @@ function renderWeekly() {
   const over = Sp ? [...rows].map(r=>({r, d:r.pts-Sp.out[r.team].avg})).sort((a,b)=>b.d-a.d) : null;
   const unlucky = rows.filter(r=>!r.win).sort((a,b)=>b.pts-a.pts)[0], lucky = rows.filter(r=>r.win).sort((a,b)=>a.pts-b.pts)[0];
   $('#wk-h').textContent = `${WY} week ${WK} awards`; $('#wk-sub').textContent = `League average ${n1(avg)}. Highest score ${num(hi.pts)}, lowest ${num(lo.pts)}.`;
+  const nm = t => `<span class="team" style="display:inline-flex;gap:.4rem;vertical-align:middle">${avatar(t,1)}<span>${t}</span></span>`;
   const aw = [
-    ['Top score', hi.team, `${num(hi.pts)} vs ${hi.opp}`],
-    ['Low score', lo.team, `${num(lo.pts)} vs ${lo.opp}`],
-    ['Blowout', `${blow.ap>blow.bp?blow.a:blow.b} over ${blow.ap>blow.bp?blow.b:blow.a}`, `by ${n1(blow.m)}`],
-    ['Nail-biter', `${close.ap>close.bp?close.a:close.b} over ${close.ap>close.bp?close.b:close.a}`, `by ${n1(close.m)}`],
-    unlucky ? ['Tough-luck loss', unlucky.team, `${num(unlucky.pts)} wasn't enough vs ${unlucky.opp}`] : null,
-    lucky ? ['Escape act', lucky.team, `won with only ${num(lucky.pts)}`] : null,
-    over ? ['Overachiever', over[0].r.team, `+${n1(over[0].d)} over their season average`] : null,
-    over ? ['Underachiever', over[over.length-1].r.team, `${n1(over[over.length-1].d)} under their season average`] : null,
+    ['Top score', nm(hi.team), `${num(hi.pts)} vs ${hi.opp}`],
+    ['Low score', nm(lo.team), `${num(lo.pts)} vs ${lo.opp}`],
+    ['Blowout', `${nm(blow.ap>blow.bp?blow.a:blow.b)} <span class="muted">over</span> ${nm(blow.ap>blow.bp?blow.b:blow.a)}`, `by ${n1(blow.m)}`],
+    ['Nail-biter', `${nm(close.ap>close.bp?close.a:close.b)} <span class="muted">over</span> ${nm(close.ap>close.bp?close.b:close.a)}`, `by ${n1(close.m)}`],
+    unlucky ? ['Tough-luck loss', nm(unlucky.team), `${num(unlucky.pts)} wasn't enough vs ${unlucky.opp}`] : null,
+    lucky ? ['Escape act', nm(lucky.team), `won with only ${num(lucky.pts)}`] : null,
+    over ? ['Overachiever', nm(over[0].r.team), `+${n1(over[0].d)} over their season average`] : null,
+    over ? ['Underachiever', nm(over[over.length-1].r.team), `${n1(over[over.length-1].d)} under their season average`] : null,
   ].filter(Boolean);
-  $('#wk-awards').innerHTML = aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v">${esc(a[1])}</div><div class="d">${esc(a[2])}</div></div>`).join('');
+  $('#wk-awards').innerHTML = aw.map(a=>`<div class="award"><div class="k">${a[0]}</div><div class="v" style="display:flex;flex-wrap:wrap;gap:.3rem .4rem;align-items:center">${a[1]}</div><div class="d">${esc(a[2])}</div></div>`).join('');
   $('#wk-games').innerHTML = games.map(g=>`<div class="mu"><div class="team">${avatar(g.a,1)}<div style="min-width:0"><div class="n">${g.a}</div><div class="o">${St.out[g.a].w}-${St.out[g.a].l}</div></div></div><div class="pts ${g.ap>g.bp?'':'lose'}">${num(g.ap)}</div><div class="team">${avatar(g.b,1)}<div style="min-width:0"><div class="n">${g.b}</div><div class="o">${St.out[g.b].w}-${St.out[g.b].l}</div></div></div><div class="pts ${g.bp>g.ap?'':'lose'}">${num(g.bp)}</div><div class="tag">${g.ap>g.bp?g.a:g.b} by ${n1(g.m)} · ${n1(g.tot)} combined</div></div>`).join('');
   $('#wk-board').innerHTML = hbar([...rows].sort((a,b)=>b.pts-a.pts).map(r=>({label:r.team, sub:r.win?'W':'L', v:r.pts, color:r.win?'var(--win)':'var(--loss)', tip:`${esc(r.team)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}`})), {max:Math.max(...rows.map(r=>r.pts)), marker:avg, markerLabel:`League average ${n1(avg)}`}) + `<p class="small muted" style="margin:.6rem 0 0"><span style="display:inline-block;width:14px;border-top:2px dotted var(--fg);vertical-align:middle;margin-right:.4rem"></span>League average ${n1(avg)}. ${rows.filter(r=>r.pts>avg).length} teams above it.</p>`;
   bindTips($('#wk-board'));
