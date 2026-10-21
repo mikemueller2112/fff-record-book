@@ -382,7 +382,7 @@ body[data-view="manager"] .lead{display:none}
   <section id="v-manager" hidden>
     <div class="mg-top"><div class="mg-left" id="mg-photo"></div><div class="mg-right"><div class="card"><div class="mgr-hd" id="mg-hd"></div></div><div class="tiles" id="mg-tiles"></div></div></div>
     <div class="card"><div class="hd"><h2>Season by season</h2><p>Regular-season record each year, with how the season ended. Click a season to open its archive.</p></div><div class="tbl" id="mg-seasons"></div></div>
-    <div class="card"><div class="hd"><h2>Finish by season</h2><p>Top of the chart is first place; gold dots are Titties, brown dots are Shitties.</p></div><div id="mg-spark"></div></div>
+    <div class="card"><div class="hd"><h2>Finish by season</h2><p>Top of the chart is first place; gold dots are Titties, grey dots are runner-up finishes, brown dots are Shitties.</p></div><div id="mg-spark"></div></div>
   </section>
   <section id="v-player" hidden>
     <div class="card"><div class="mgr-hd" id="pl-hd"></div></div>
@@ -461,7 +461,8 @@ const sum = a => a.reduce((x,y)=>x+y,0);
 const mean = a => a.length ? sum(a)/a.length : 0;
 const sd = a => { const m = mean(a); return Math.sqrt(mean(a.map(x=>(x-m)**2))); };
 const isShitty = s => s.finalRank!=null && s.finalRank===Math.max(...seasons.filter(q=>q.year===s.year).map(q=>q.finalRank||0));
-const SHITBROWN = '#7a4a1e';
+const SHITBROWN = '#7a4a1e', RUGREY = '#8a8f8c';
+const isRU = s => s.champApp===1 && s.champW!==1;
 const byKey = (a, f) => a.reduce((m,x)=>{ const k=f(x); (m[k]=m[k]||[]).push(x); return m; }, {});
 const seasons = D.seasons.map(s => { const o={...s}; for (const k in o) if (k!=='team' && o[k]!=='' ) o[k]=+o[k]; else if (o[k]==='') o[k]=null; return o; });
 const weekly = D.weekly;
@@ -1076,7 +1077,7 @@ function renderManager() {
   $('#mg-seasons').querySelectorAll('a.yr-link').forEach(a=>a.onclick=()=>{ SEY=+a.dataset.y; delete rendered.seasons; });
   const yrs = YEARS.filter(y=>y<CUR); const W=640,H=160,L=30,R=16,T=12,B=24; const X=y=>L+(y-yrs[0])/Math.max(1,yrs[yrs.length-1]-yrs[0])*(W-L-R), Y=r=>T+(r-1)/11*(H-T-B);
   const pts = fin.map(s=>({x:X(s.year), y:Y(s.finalRank), s}));
-  $('#mg-spark').innerHTML = fin.length ? `<svg class="ch" viewBox="0 0 ${W} ${H}" style="max-width:720px">${[1,4,8,12].map(r=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${Y(r)}" y2="${Y(r)}"/><text x="${L-6}" y="${Y(r)+4}" text-anchor="end">${r}</text>`).join('')}<polyline fill="none" stroke="${mcol(t)}" stroke-width="${MPATTERN[t]==='dots'?3:2}" stroke-linecap="round"${MPATTERN[t]==='dots'?' stroke-dasharray="1 4"':MPATTERN[t]==='stripes'?' stroke-dasharray="6 4"':''} points="${pts.map(p=>p.x+','+p.y).join(' ')}"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="${p.s.champW===1||isShitty(p.s)?6:4}" fill="${p.s.champW===1?'var(--gold)':isShitty(p.s)?SHITBROWN:mcol(t)}" stroke="var(--card)" stroke-width="1.5" data-tip="${p.s.year}: finished ${ord(p.s.finalRank)}${p.s.champW===1?' (champion)':isShitty(p.s)?' (Shitty)':''}, ${p.s.regW}-${p.s.regL}"/><text x="${p.x}" y="${H-6}" text-anchor="middle">${String(p.s.year).slice(2)}</text>`).join('')}</svg>` : '<p class="muted small">No finished seasons yet.</p>';
+  $('#mg-spark').innerHTML = fin.length ? `<svg class="ch" viewBox="0 0 ${W} ${H}" style="max-width:720px">${[1,4,8,12].map(r=>`<line class="grid" x1="${L}" x2="${W-R}" y1="${Y(r)}" y2="${Y(r)}"/><text x="${L-6}" y="${Y(r)+4}" text-anchor="end">${r}</text>`).join('')}<polyline fill="none" stroke="${mcol(t)}" stroke-width="${MPATTERN[t]==='dots'?3:2}" stroke-linecap="round"${MPATTERN[t]==='dots'?' stroke-dasharray="1 4"':MPATTERN[t]==='stripes'?' stroke-dasharray="6 4"':''} points="${pts.map(p=>p.x+','+p.y).join(' ')}"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="${p.s.champW===1||isRU(p.s)||isShitty(p.s)?6:4}" fill="${p.s.champW===1?'var(--gold)':isRU(p.s)?RUGREY:isShitty(p.s)?SHITBROWN:mcol(t)}" stroke="var(--card)" stroke-width="1.5" data-tip="${p.s.year}: finished ${ord(p.s.finalRank)}${p.s.champW===1?' (champion)':isRU(p.s)?' (runner-up)':isShitty(p.s)?' (Shitty)':''}, ${p.s.regW}-${p.s.regL}"/><text x="${p.x}" y="${H-6}" text-anchor="middle">${String(p.s.year).slice(2)}</text>`).join('')}</svg>` : '<p class="muted small">No finished seasons yet.</p>';
   bindTips($('#mg-spark'));
 }
 
@@ -1200,7 +1201,7 @@ function renderManagers() {
     const hi=weekly.filter(r=>r.team===t).reduce((a,b)=>b.pts>a.pts?b:a);
     const W=300,H=70,L=4,R=4,T=8,B=14; const x=y=>L+(y-y0)/(y1-y0)*(W-L-R), yy=r=>T+(r-1)/11*(H-T-B);
     let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="height:auto;display:block" aria-label="Finish by season"><line class="ax" x1="${L}" x2="${W-R}" y1="${yy(1)}" y2="${yy(1)}"/><line class="ax" x1="${L}" x2="${W-R}" y1="${yy(12)}" y2="${yy(12)}"/>`;
-    if (fin.length) svg+=`<polyline fill="none" stroke="${mcol(t)}" stroke-width="${MPATTERN[t]==='dots'?3:2}" stroke-linecap="round"${MPATTERN[t]==='dots'?' stroke-dasharray="1 4"':MPATTERN[t]==='stripes'?' stroke-dasharray="6 4"':''} points="${fin.map(r=>x(r.year)+','+yy(r.finalRank)).join(' ')}"/>`+fin.map(r=>`<circle cx="${x(r.year)}" cy="${yy(r.finalRank)}" r="${r.champW===1||isShitty(r)?4:2.5}" fill="${r.champW===1?'var(--gold)':isShitty(r)?SHITBROWN:mcol(t)}" data-tip="${r.year}: finished ${ord(r.finalRank)}${r.champW===1?' (champion)':isShitty(r)?' (Shitty)':''}, ${r.regW}-${r.regL}"/>`).join('');
+    if (fin.length) svg+=`<polyline fill="none" stroke="${mcol(t)}" stroke-width="${MPATTERN[t]==='dots'?3:2}" stroke-linecap="round"${MPATTERN[t]==='dots'?' stroke-dasharray="1 4"':MPATTERN[t]==='stripes'?' stroke-dasharray="6 4"':''} points="${fin.map(r=>x(r.year)+','+yy(r.finalRank)).join(' ')}"/>`+fin.map(r=>`<circle cx="${x(r.year)}" cy="${yy(r.finalRank)}" r="${r.champW===1||isRU(r)||isShitty(r)?4:2.5}" fill="${r.champW===1?'var(--gold)':isRU(r)?RUGREY:isShitty(r)?SHITBROWN:mcol(t)}" data-tip="${r.year}: finished ${ord(r.finalRank)}${r.champW===1?' (champion)':isRU(r)?' (runner-up)':isShitty(r)?' (Shitty)':''}, ${r.regW}-${r.regL}"/>`).join('');
     svg+=`<text class="lbl" x="${L}" y="${H-2}" style="font-size:9px">${y0}</text><text class="lbl" x="${W-R}" y="${H-2}" text-anchor="end" style="font-size:9px">${y1}</text></svg>`;
     return {t, titles, wp:w/Math.max(1,w+l), html:`<div class="mgr" style="--c:${mcol(t)}"><div class="row" style="justify-content:space-between"><div class="nm">${mlink(t)}</div><div>${TROPHY.repeat(titles)}${SHITTY.repeat(sh)}</div></div>
       <div class="muted small">${ss.length?`${ss[0].year}–${cur?'present':ss[ss.length-1].year} · ${ss.length} full seasons`:`${CUR} rookie`}</div>
