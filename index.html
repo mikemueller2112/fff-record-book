@@ -429,7 +429,7 @@ body[data-view="manager"] .lead{display:none}
 
   <section id="v-seasons" hidden>
     <div class="card"><div class="hd"><h2 id="se-h">Season</h2><div class="ctl"><label class="small muted" for="se-year">Season</label><select id="se-year"></select></div></div><div class="tbl" id="se-tbl"></div></div>
-    <div class="card"><div class="hd"><h2>Weekly scores</h2><p>Regular season. Green is a win, hover for the opponent.</p></div><div class="tbl" id="se-grid"></div></div>
+    <div class="card"><div class="hd"><h2>Weekly scores</h2><p>Regular season. Green is a win, hover for the opponent, click a score for both lineups.</p></div><div class="tbl" id="se-grid"></div></div>
   </section>
 </div></main>
 </div>
@@ -703,7 +703,7 @@ function renderStandings() {
 }
 function weekGrid(el, year) {
   const wk = weekly.filter(r=>r.year===year); const weeks=[...new Set(wk.map(r=>r.week))].sort((a,b)=>a-b); const teams=[...new Set(wk.map(r=>r.team))].sort((a,b)=>sum(wk.filter(r=>r.team===b).map(r=>r.pts))-sum(wk.filter(r=>r.team===a).map(r=>r.pts)));
-  el.innerHTML = '<table><thead><tr><th class="l">Team</th>'+weeks.map(w=>`<th>W${w}</th>`).join('')+'<th>Avg</th></tr></thead><tbody>'+teams.map(t=>{ const mine=wk.filter(r=>r.team===t); return `<tr class="${t===ME?'me':''}"><td class="l">${mlink(t)}</td>`+weeks.map(w=>{ const r=mine.find(q=>q.week===w); if(!r) return '<td class="muted">–</td>'; return `<td data-tip="W${w}: ${esc(t)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)}" class="${r.win?'cw':'cl'}">${n1(r.pts)}</td>`; }).join('')+`<td><b>${n1(mean(mine.map(r=>r.pts)))}</b></td></tr>`; }).join('')+'</tbody></table>';
+  el.innerHTML = '<table><thead><tr><th class="l">Team</th>'+weeks.map(w=>`<th>W${w}</th>`).join('')+'<th>Avg</th></tr></thead><tbody>'+teams.map(t=>{ const mine=wk.filter(r=>r.team===t); return `<tr class="${t===ME?'me':''}"><td class="l">${mlink(t)}</td>`+weeks.map(w=>{ const r=mine.find(q=>q.week===w); if(!r) return '<td class="muted">–</td>'; return `<td data-tip="W${w}: ${esc(t)} ${num(r.pts)} vs ${esc(r.opp)} ${num(r.opp_pts)} · click for lineups" class="${r.win?'cw':'cl'}"><a class="mul" href="#matchup" data-y="${year}" data-w="${w}" data-t="${esc(t)}">${n1(r.pts)}</a></td>`; }).join('')+`<td><b>${n1(mean(mine.map(r=>r.pts)))}</b></td></tr>`; }).join('')+'</tbody></table>';
   bindTips(el);
 }
 
