@@ -117,7 +117,7 @@ svg .axis{stroke:var(--rule)} svg .lbl{fill:var(--muted);font-size:11px}
   </section>
 
   <section id="v-alltime" hidden>
-    <div class="sec-head"><h2>All-time standings</h2><p>Regular-season totals, 2014 through week 8 of 2026. Click a column to sort. Playoff win–loss runs through 2024.</p></div>
+    <div class="sec-head"><h2>All-time standings</h2><p>Regular-season totals, 2014 through week 8 of 2026; Total W–L adds playoff and consolation games (matches the head-to-head grid). Click a column to sort. Playoff win–loss runs through 2024.</p></div>
     <div class="panel tbl" id="alltime"></div>
   </section>
 
@@ -238,6 +238,7 @@ sortable($('#alltime'), [
   {key:'seasons',label:'Seasons'},
   {key:'regW',label:'W'},{key:'regL',label:'L'},
   {key:'winpct',label:'Win %',fmt:r=>pct(r.regW,r.regL)},
+  {key:'twp',label:'Total W–L',fmt:r=>`${r.tw}–${r.tl} <span class="muted small">${pct(r.tw,r.tl)}</span>`},
   {key:'PF',label:'PF',fmt:r=>num(r.PF)},{key:'PA',label:'PA',fmt:r=>num(r.PA)},
   {key:'ppg',label:'PPG',fmt:r=>num(r.ppg)},
   {key:'winSeasons',label:'Winning yrs'},
@@ -246,7 +247,7 @@ sortable($('#alltime'), [
   {key:'titles',label:'Titties',fmt:r=>r.titles?'🏆'.repeat(r.titles):'–'},
   {key:'ru',label:'Runner-up'},
   {key:'shitties',label:'Shitties',fmt:r=>r.shitties?'💩'.repeat(r.shitties):'–'},
-], MANAGERS.map(m=>({...career[m], winpct:career[m].regW/(career[m].regW+career[m].regL)})), 'winpct');
+], MANAGERS.map(m=>{ const i=D.h2h_sheet.names.indexOf(m); const tw=i<0?0:D.h2h_sheet.grid[i].reduce((a,c)=>a+c[0],0), tl=i<0?0:D.h2h_sheet.grid[i].reduce((a,c)=>a+c[1],0); return {...career[m], winpct:career[m].regW/(career[m].regW+career[m].regL), tw, tl, twp:tw/Math.max(1,tw+tl)}; }), 'winpct');
 
 /* ---------- seasons ---------- */
 (function(){
@@ -370,5 +371,3 @@ sortable($('#alltime'), [
   show((location.hash||'#overview').slice(1));
 })();
 </script>
-
-
